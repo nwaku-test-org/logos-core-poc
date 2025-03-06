@@ -43,8 +43,14 @@ void MainWindow::setupUi()
     m_sidebar->setMinimumWidth(200);
     m_sidebar->setMaximumWidth(200);
     
-    // Add a nice background color to the sidebar for better readability
-    m_sidebar->setStyleSheet("QFrame#sidebar { background-color: #2c3e50; border-right: 1px solid #1a2530; }");
+    // Use system palette colors for sidebar
+    QPalette palette = QApplication::palette();
+    QString sidebarStyle = QString("QFrame#sidebar { "
+                                  "background-color: %1; "
+                                  "border-right: 1px solid %2; "
+                                  "}").arg(palette.color(QPalette::Window).name(),
+                                          palette.color(QPalette::Mid).name());
+    m_sidebar->setStyleSheet(sidebarStyle);
     
     m_sidebarLayout = new QVBoxLayout(m_sidebar);
     m_sidebarLayout->setSpacing(5);

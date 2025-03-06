@@ -1,5 +1,6 @@
 #include "mdichild.h"
 #include <QRandomGenerator>
+#include <QApplication>
 
 MdiChild::MdiChild(QWidget *parent)
     : QWidget(parent)
@@ -10,12 +11,15 @@ MdiChild::MdiChild(QWidget *parent)
     // Create a label with some content
     contentLabel = new QLabel(this);
     
-    // Set terminal-like black background with white text
-    QString styleSheet = QString("background-color: rgb(0, 0, 0); "
-                                "color: rgb(255, 255, 255); "
-                                "border: 1px solid #333333; "
-                                "padding: 10px; "
-                                "font-family: 'Courier New', monospace;");
+    // Use system colors instead of terminal-like styling
+    QPalette palette = QApplication::palette();
+    QString styleSheet = QString("background-color: %1; "
+                                "color: %2; "
+                                "border: 1px solid %3; "
+                                "padding: 10px;")
+                                .arg(palette.color(QPalette::Base).name(),
+                                     palette.color(QPalette::Text).name(),
+                                     palette.color(QPalette::Mid).name());
     contentLabel->setStyleSheet(styleSheet);
     contentLabel->setAlignment(Qt::AlignCenter);
     contentLabel->setText("MDI Child Window Content\n\n"

@@ -1,6 +1,7 @@
 #include "sidebarbutton.h"
 #include <QPainter>
 #include <QPaintEvent>
+#include <QApplication>
 
 SidebarButton::SidebarButton(const QString &text, const QIcon &icon, QWidget *parent)
     : QPushButton(parent), m_active(false)
@@ -15,19 +16,26 @@ SidebarButton::SidebarButton(const QString &text, const QIcon &icon, QWidget *pa
     // Set fixed height for consistent look
     setFixedHeight(50);
     
-    // Style the button
-    setStyleSheet(
+    // Get system colors
+    QPalette palette = QApplication::palette();
+    QString textColor = palette.color(QPalette::ButtonText).name();
+    QString hoverColor = palette.color(QPalette::Highlight).lighter(150).name();
+    
+    // Style the button with system colors
+    QString styleSheet = QString(
         "SidebarButton {"
         "    text-align: left;"
         "    padding-left: 20px;"
         "    border: none;"
-        "    color: #ecf0f1;"
+        "    color: %1;"
         "    font-size: 14px;"
         "}"
         "SidebarButton:hover {"
-        "    background-color: #34495e;"
+        "    background-color: %2;"
         "}"
-    );
+    ).arg(textColor, hoverColor);
+    
+    setStyleSheet(styleSheet);
 }
 
 void SidebarButton::setActive(bool active)
@@ -49,7 +57,9 @@ void SidebarButton::paintEvent(QPaintEvent *event)
     if (m_active) {
         QPainter painter(this);
         painter.setPen(Qt::NoPen);
-        painter.setBrush(QColor("#3498db"));  // Blue indicator
+        
+        // Use system highlight color for the indicator
+        painter.setBrush(QApplication::palette().color(QPalette::Highlight));
         
         // Draw a vertical bar on the left side
         painter.drawRect(0, 0, 5, height());

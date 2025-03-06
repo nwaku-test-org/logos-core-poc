@@ -1,6 +1,7 @@
 #include "mdiview.h"
 #include "mdichild.h"
 #include <QTabBar>
+#include <QApplication>
 
 MdiView::MdiView(QWidget *parent)
     : QWidget(parent), windowCounter(0)
@@ -43,6 +44,10 @@ void MdiView::setupUi()
     mdiArea->setHorizontalScrollBarPolicy(Qt::ScrollBarAsNeeded);
     mdiArea->setVerticalScrollBarPolicy(Qt::ScrollBarAsNeeded);
     mdiArea->setViewMode(QMdiArea::SubWindowView); // Start in windowed mode
+    
+    // Use system background color for MDI area
+    QPalette palette = QApplication::palette();
+    mdiArea->setBackground(palette.color(QPalette::Window));
     
     // Enable tab close buttons
     mdiArea->setTabsClosable(true);

@@ -6,8 +6,8 @@ int main(int argc, char *argv[])
 {
     QApplication app(argc, argv);
     
-    // Set application style
-    app.setStyle("Fusion");
+    // Use native system style instead of Fusion
+    // app.setStyle("Fusion");
     
     // Set application icon
     app.setWindowIcon(QIcon(":/icons/logos.png"));
