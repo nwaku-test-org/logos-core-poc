@@ -2,6 +2,7 @@
 #include "mdichild.h"
 #include <QTabBar>
 #include <QApplication>
+#include <QDebug>
 
 MdiView::MdiView(QWidget *parent)
     : QWidget(parent), windowCounter(0)
@@ -118,5 +119,52 @@ void MdiView::updateTabCloseButtons()
                 }
             });
         }
+    }
+}
+
+QMdiSubWindow* MdiView::addPluginWindow(QWidget* pluginWidget, const QString& title)
+{
+    if (!pluginWidget) {
+        qDebug() << "Cannot add null plugin widget to MDI area";
+        return nullptr;
+    }
+    
+    // Create a new MDI sub-window
+    QMdiSubWindow *subWindow = new QMdiSubWindow();
+    subWindow->setWidget(pluginWidget);
+    subWindow->setAttribute(Qt::WA_DeleteOnClose);
+    subWindow->setWindowTitle(title);
+    
+    // Add the sub-window to the MDI area
+    mdiArea->addSubWindow(subWindow);
+    
+    // Show the sub-window
+    subWindow->show();
+    
+    // Store the mapping between plugin widget and MDI window
+    m_pluginWindows[pluginWidget] = subWindow;
+    
+    // Update tab close buttons if in tabbed mode
+    updateTabCloseButtons();
+    
+    return subWindow;
+}
+
+void MdiView::removePluginWindow(QWidget* pluginWidget)
+{
+    if (!pluginWidget || !m_pluginWindows.contains(pluginWidget)) {
+        return;
+    }
+    
+    QMdiSubWindow* subWindow = m_pluginWindows[pluginWidget];
+    if (subWindow) {
+        // Detach the plugin widget from the sub-window to prevent it from being deleted
+        subWindow->setWidget(nullptr);
+        
+        // Close and delete the sub-window
+        subWindow->close();
+        
+        // Remove from the map
+        m_pluginWindows.remove(pluginWidget);
     }
 } 

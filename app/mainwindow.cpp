@@ -96,9 +96,6 @@ void MainWindow::createContentPages()
     m_mdiView = new MdiView();
     m_contentStack->addWidget(m_mdiView);
     
-    // Create other content pages
-    QStringList pageTitles = {"Dashboard", "Modules", "Settings"};
-    
     // Dashboard page
     QWidget *dashboardPage = new QWidget();
     QVBoxLayout *dashboardLayout = new QVBoxLayout(dashboardPage);
@@ -119,8 +116,8 @@ void MainWindow::createContentPages()
     
     m_contentStack->addWidget(dashboardPage);
     
-    // Modules page
-    ModulesView *modulesView = new ModulesView();
+    // Modules page - pass the MainWindow instance to ModulesView
+    ModulesView *modulesView = new ModulesView(nullptr, this);
     m_contentStack->addWidget(modulesView);
     
     // Settings page

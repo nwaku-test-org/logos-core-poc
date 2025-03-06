@@ -8,6 +8,7 @@
 #include <QVBoxLayout>
 #include <QHBoxLayout>
 #include <QToolBar>
+#include <QMap>
 
 class MdiView : public QWidget
 {
@@ -16,6 +17,12 @@ class MdiView : public QWidget
 public:
     explicit MdiView(QWidget *parent = nullptr);
     ~MdiView();
+    
+    // Add a plugin widget as an MDI window
+    QMdiSubWindow* addPluginWindow(QWidget* pluginWidget, const QString& title);
+    
+    // Remove a plugin window
+    void removePluginWindow(QWidget* pluginWidget);
 
 private slots:
     void addMdiWindow();
@@ -30,6 +37,9 @@ private:
     QPushButton *toggleButton;
     QToolBar *toolBar;
     QVBoxLayout *mainLayout;
+    
+    // Map to keep track of plugin widgets and their MDI windows
+    QMap<QWidget*, QMdiSubWindow*> m_pluginWindows;
     
     int windowCounter;
 };

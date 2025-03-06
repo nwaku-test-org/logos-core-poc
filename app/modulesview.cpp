@@ -6,9 +6,18 @@
 #include <QLabel>
 #include <QFont>
 #include <QFileInfo>
+#include "mainwindow.h"
 
-ModulesView::ModulesView(QWidget *parent) : QWidget(parent)
+ModulesView::ModulesView(QWidget *parent, MainWindow* mainWindow)
+    : QWidget(parent), m_mainWindow(mainWindow)
 {
+    // Get the MDI view from the main window if available
+    if (m_mainWindow) {
+        m_mdiView = m_mainWindow->getMdiView();
+    } else {
+        m_mdiView = nullptr;
+    }
+    
     setupUi();
     
     // Initial plugin setup
@@ -354,35 +363,54 @@ void ModulesView::onLoadComponent(const QString& name)
             return;
         }
         
-        // Add a frame around the component widget
-        QFrame* frame = new QFrame(this);
-        frame->setFrameShape(QFrame::StyledPanel);
-        frame->setFrameShadow(QFrame::Raised);
-        QVBoxLayout* frameLayout = new QVBoxLayout(frame);
-        
-        // Add a header with the component name
-        QLabel* headerLabel = new QLabel(name, frame);
-        QFont headerFont = headerLabel->font();
-        headerFont.setBold(true);
-        headerLabel->setFont(headerFont);
-        
-        frameLayout->addWidget(headerLabel);
-        frameLayout->addWidget(componentWidget);
-        
-        // Add the frame to the components container
-        if (m_componentsContainer && m_componentsContainer->layout()) {
-            m_componentsContainer->layout()->addWidget(frame);
-        } else {
-            qDebug() << "Components container or its layout is null, cannot add component widget";
-            component->destroyWidget(componentWidget);
-            frame->deleteLater();
-            loader.unload();
-            return;
-        }
-        
         // Store the component and widget
         m_loadedComponents[name] = component;
-        m_componentWidgets[name] = frame;
+        m_componentWidgets[name] = componentWidget;
+        
+        // Add the component widget to the MDI view if available
+        if (m_mdiView) {
+            qDebug() << "Adding plugin" << name << "to MDI view";
+            m_mdiView->addPluginWindow(componentWidget, name);
+            
+            // Switch to the Apps tab (index 0)
+            if (m_mainWindow) {
+                QVector<SidebarButton*> buttons = m_mainWindow->findChildren<SidebarButton*>();
+                if (!buttons.isEmpty()) {
+                    buttons[0]->click();
+                }
+            }
+        } else {
+            // Fallback to adding the widget to the components container
+            qDebug() << "MDI view not available, adding plugin" << name << "to components container";
+            
+            // Add a frame around the component widget
+            QFrame* frame = new QFrame(this);
+            frame->setFrameShape(QFrame::StyledPanel);
+            frame->setFrameShadow(QFrame::Raised);
+            QVBoxLayout* frameLayout = new QVBoxLayout(frame);
+            
+            // Add a header with the component name
+            QLabel* headerLabel = new QLabel(name, frame);
+            QFont headerFont = headerLabel->font();
+            headerFont.setBold(true);
+            headerLabel->setFont(headerFont);
+            
+            frameLayout->addWidget(headerLabel);
+            frameLayout->addWidget(componentWidget);
+            
+            // Add the frame to the components container
+            if (m_componentsContainer && m_componentsContainer->layout()) {
+                m_componentsContainer->layout()->addWidget(frame);
+            } else {
+                qDebug() << "Components container or its layout is null, cannot add component widget";
+                component->destroyWidget(componentWidget);
+                frame->deleteLater();
+                loader.unload();
+                m_loadedComponents.remove(name);
+                m_componentWidgets.remove(name);
+                return;
+            }
+        }
         
         // Update button states
         updateButtonStates(name, false);
@@ -407,19 +435,22 @@ void ModulesView::onUnloadComponent(const QString& name)
     try {
         // Get the component and widget
         IComponent* component = m_loadedComponents.value(name);
-        QWidget* containerWidget = m_componentWidgets.value(name);
+        QWidget* componentWidget = m_componentWidgets.value(name);
         
         if (!component) {
             qDebug() << "Component for" << name << "is null, removing from loaded components";
             m_loadedComponents.remove(name);
             
-            if (containerWidget) {
-                qDebug() << "Removing container widget for" << name;
-                if (m_componentsContainer && m_componentsContainer->layout()) {
-                    m_componentsContainer->layout()->removeWidget(containerWidget);
+            if (componentWidget) {
+                qDebug() << "Removing component widget for" << name;
+                
+                // Remove from MDI view if available
+                if (m_mdiView) {
+                    m_mdiView->removePluginWindow(componentWidget);
                 }
-                containerWidget->hide();
-                containerWidget->deleteLater();
+                
+                componentWidget->hide();
+                componentWidget->deleteLater();
                 m_componentWidgets.remove(name);
             }
             
@@ -428,8 +459,8 @@ void ModulesView::onUnloadComponent(const QString& name)
             return;
         }
         
-        if (!containerWidget) {
-            qDebug() << "Container widget for" << name << "is null, only removing component";
+        if (!componentWidget) {
+            qDebug() << "Component widget for" << name << "is null, only removing component";
             m_loadedComponents.remove(name);
             
             // Update button states
@@ -437,41 +468,42 @@ void ModulesView::onUnloadComponent(const QString& name)
             return;
         }
         
-        // Find the actual component widget (should be the second widget in the layout)
-        QWidget* componentWidget = nullptr;
-        if (containerWidget->layout() && containerWidget->layout()->count() > 1) {
-            componentWidget = containerWidget->layout()->itemAt(1)->widget();
-        }
-        
-        // First remove the container from the layout
-        if (m_componentsContainer && m_componentsContainer->layout()) {
-            qDebug() << "Removing container from layout for" << name;
-            m_componentsContainer->layout()->removeWidget(containerWidget);
-        }
-        
-        // Then try to destroy the component widget if we found it
-        if (componentWidget) {
-            qDebug() << "Destroying component widget for" << name;
-            try {
-                // Disconnect any signals/slots
-                componentWidget->disconnect();
-                
-                // Call the component's destroyWidget method
-                component->destroyWidget(componentWidget);
-            } catch (const std::exception& e) {
-                qDebug() << "Exception while destroying widget for" << name << ":" << e.what();
-            } catch (...) {
-                qDebug() << "Unknown exception while destroying widget for" << name;
-            }
+        // Remove from MDI view if available
+        if (m_mdiView) {
+            qDebug() << "Removing plugin" << name << "from MDI view";
+            m_mdiView->removePluginWindow(componentWidget);
         } else {
-            qDebug() << "Could not find component widget for" << name;
+            // Fallback to removing from components container
+            qDebug() << "MDI view not available, removing plugin" << name << "from components container";
+            
+            // Find the container widget (parent frame)
+            QWidget* containerWidget = componentWidget->parentWidget();
+            while (containerWidget && containerWidget->parentWidget() != m_componentsContainer) {
+                containerWidget = containerWidget->parentWidget();
+            }
+            
+            // Remove the container from the layout if found
+            if (containerWidget && m_componentsContainer && m_componentsContainer->layout()) {
+                qDebug() << "Removing container from layout for" << name;
+                m_componentsContainer->layout()->removeWidget(containerWidget);
+                containerWidget->hide();
+                containerWidget->deleteLater();
+            }
         }
         
-        // Delete the container widget
-        qDebug() << "Deleting container widget for" << name;
-        containerWidget->hide();
-        containerWidget->setParent(nullptr);
-        containerWidget->deleteLater();
+        // Destroy the component widget
+        qDebug() << "Destroying component widget for" << name;
+        try {
+            // Disconnect any signals/slots
+            componentWidget->disconnect();
+            
+            // Call the component's destroyWidget method
+            component->destroyWidget(componentWidget);
+        } catch (const std::exception& e) {
+            qDebug() << "Exception while destroying widget for" << name << ":" << e.what();
+        } catch (...) {
+            qDebug() << "Unknown exception while destroying widget for" << name;
+        }
         
         // Remove from maps
         qDebug() << "Removing" << name << "from loaded components and widgets maps";

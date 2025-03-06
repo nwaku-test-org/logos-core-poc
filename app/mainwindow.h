@@ -18,6 +18,9 @@ class MainWindow : public QMainWindow
 public:
     MainWindow(QWidget *parent = nullptr);
     ~MainWindow();
+    
+    // Get the MDI view
+    MdiView* getMdiView() const { return m_mdiView; }
 
 private slots:
     void onSidebarButtonClicked();

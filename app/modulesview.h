@@ -7,13 +7,16 @@
 #include <QPushButton>
 #include <QMap>
 #include "interfaces/IComponent.h"
+#include "mdiview.h"
+
+class MainWindow;
 
 class ModulesView : public QWidget
 {
     Q_OBJECT
 
 public:
-    explicit ModulesView(QWidget *parent = nullptr);
+    explicit ModulesView(QWidget *parent = nullptr, MainWindow* mainWindow = nullptr);
     ~ModulesView();
 
 private slots:
@@ -36,6 +39,10 @@ private:
     QVBoxLayout* m_mainLayout;
     QVBoxLayout* m_buttonLayout;
     QWidget* m_componentsContainer;
+    
+    // Reference to the main window to access the MDI view
+    MainWindow* m_mainWindow;
+    MdiView* m_mdiView;
 };
 
 #endif // MODULESVIEW_H 
