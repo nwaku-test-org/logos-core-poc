@@ -3,6 +3,7 @@
 #include <QScreen>
 #include <QSpacerItem>
 #include <QFont>
+#include "modulesview.h"
 
 MainWindow::MainWindow(QWidget *parent)
     : QMainWindow(parent)
@@ -98,26 +99,46 @@ void MainWindow::createContentPages()
     // Create other content pages
     QStringList pageTitles = {"Dashboard", "Modules", "Settings"};
     
-    for (const QString &title : pageTitles) {
-        QWidget *page = new QWidget();
-        QVBoxLayout *layout = new QVBoxLayout(page);
-        
-        QLabel *titleLabel = new QLabel(title, page);
-        QFont titleFont = titleLabel->font();
-        titleFont.setPointSize(24);
-        titleFont.setBold(true);
-        titleLabel->setFont(titleFont);
-        titleLabel->setAlignment(Qt::AlignCenter);
-        
-        QLabel *contentLabel = new QLabel("This is the " + title + " content area.", page);
-        contentLabel->setAlignment(Qt::AlignCenter);
-        
-        layout->addWidget(titleLabel);
-        layout->addWidget(contentLabel);
-        layout->addStretch();
-        
-        m_contentStack->addWidget(page);
-    }
+    // Dashboard page
+    QWidget *dashboardPage = new QWidget();
+    QVBoxLayout *dashboardLayout = new QVBoxLayout(dashboardPage);
+    
+    QLabel *dashboardTitle = new QLabel("Dashboard", dashboardPage);
+    QFont titleFont = dashboardTitle->font();
+    titleFont.setPointSize(24);
+    titleFont.setBold(true);
+    dashboardTitle->setFont(titleFont);
+    dashboardTitle->setAlignment(Qt::AlignCenter);
+    
+    QLabel *dashboardContent = new QLabel("This is the Dashboard content area.", dashboardPage);
+    dashboardContent->setAlignment(Qt::AlignCenter);
+    
+    dashboardLayout->addWidget(dashboardTitle);
+    dashboardLayout->addWidget(dashboardContent);
+    dashboardLayout->addStretch();
+    
+    m_contentStack->addWidget(dashboardPage);
+    
+    // Modules page
+    ModulesView *modulesView = new ModulesView();
+    m_contentStack->addWidget(modulesView);
+    
+    // Settings page
+    QWidget *settingsPage = new QWidget();
+    QVBoxLayout *settingsLayout = new QVBoxLayout(settingsPage);
+    
+    QLabel *settingsTitle = new QLabel("Settings", settingsPage);
+    settingsTitle->setFont(titleFont);
+    settingsTitle->setAlignment(Qt::AlignCenter);
+    
+    QLabel *settingsContent = new QLabel("This is the Settings content area.", settingsPage);
+    settingsContent->setAlignment(Qt::AlignCenter);
+    
+    settingsLayout->addWidget(settingsTitle);
+    settingsLayout->addWidget(settingsContent);
+    settingsLayout->addStretch();
+    
+    m_contentStack->addWidget(settingsPage);
 }
 
 void MainWindow::onSidebarButtonClicked()
