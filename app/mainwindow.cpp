@@ -41,20 +41,18 @@ void MainWindow::setupUi()
     m_sidebar->setObjectName("sidebar");
     m_sidebar->setFrameShape(QFrame::NoFrame);
     m_sidebar->setMinimumWidth(80);
-    m_sidebar->setMaximumWidth(70);
+    m_sidebar->setMaximumWidth(80);
     
-    // Use system palette colors for sidebar
-    QPalette palette = QApplication::palette();
+    // Use a dark background for the sidebar
     QString sidebarStyle = QString("QFrame#sidebar { "
-                                  "background-color: %1; "
-                                  "border-right: 1px solid %2; "
-                                  "}").arg(palette.color(QPalette::Window).name(),
-                                          palette.color(QPalette::Mid).name());
+                                  "background-color: #2D2D2D; "
+                                  "border: none; "
+                                  "}");
     m_sidebar->setStyleSheet(sidebarStyle);
     
     m_sidebarLayout = new QVBoxLayout(m_sidebar);
-    m_sidebarLayout->setSpacing(10);
-    m_sidebarLayout->setContentsMargins(10, 10, 10, 10);
+    m_sidebarLayout->setSpacing(15);
+    m_sidebarLayout->setContentsMargins(0, 20, 0, 20);
     m_sidebarLayout->setAlignment(Qt::AlignCenter);
     
     // Create content stack
