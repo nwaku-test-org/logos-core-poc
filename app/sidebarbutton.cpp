@@ -2,18 +2,21 @@
 #include <QPainter>
 #include <QPaintEvent>
 #include <QApplication>
+#include <QStyle>
+#include <QStyleOption>
 
 SidebarButton::SidebarButton(const QString &text, const QIcon &icon, QWidget *parent)
     : QPushButton(parent), m_active(false)
 {
     setText(text);
     setIcon(icon);
-    setIconSize(QSize(24, 24));
+    setIconSize(QSize(32, 32));
     setCheckable(true);
     setFlat(true);
     setCursor(Qt::PointingHandCursor);
     
-    // Set fixed height for consistent look
+    // Set fixed size for a more compact button
+    setFixedWidth(60);
     setFixedHeight(50);
     
     // Get system colors
@@ -24,11 +27,9 @@ SidebarButton::SidebarButton(const QString &text, const QIcon &icon, QWidget *pa
     // Style the button with system colors
     QString styleSheet = QString(
         "SidebarButton {"
-        "    text-align: left;"
-        "    padding-left: 20px;"
         "    border: none;"
         "    color: %1;"
-        "    font-size: 14px;"
+        "    font-size: 12px;"
         "}"
         "SidebarButton:hover {"
         "    background-color: %2;"
@@ -52,21 +53,33 @@ bool SidebarButton::isActive() const
 
 void SidebarButton::paintEvent(QPaintEvent *event)
 {
-    QPushButton::paintEvent(event);
+    // Draw the button background
+    QStyleOption opt;
+    opt.initFrom(this);
+    QPainter painter(this);
+    style()->drawPrimitive(QStyle::PE_Widget, &opt, &painter, this);
     
+    // Draw the icon centered at the top
+    QRect iconRect(0, 5, width(), height() - 25);
+    QIcon icon = this->icon();
+    if (!icon.isNull()) {
+        icon.paint(&painter, iconRect, Qt::AlignCenter, isEnabled() ? QIcon::Normal : QIcon::Disabled, isChecked() ? QIcon::On : QIcon::Off);
+    }
+    
+    // Draw the text centered at the bottom
+    painter.setPen(palette().color(QPalette::ButtonText));
+    QRect textRect(0, height() - 25, width(), 20);
+    painter.drawText(textRect, Qt::AlignCenter, text());
+    
+    // Draw the active indicator if needed
     if (m_active) {
-        QPainter painter(this);
         painter.setPen(Qt::NoPen);
-        
-        // Use system highlight color for the indicator
         painter.setBrush(QApplication::palette().color(QPalette::Highlight));
-        
-        // Draw a vertical bar on the left side
-        painter.drawRect(0, 0, 5, height());
+        painter.drawRect(0, height() - 5, width(), 5);
     }
 }
 
 QSize SidebarButton::sizeHint() const
 {
-    return QSize(200, 50);
+    return QSize(60, 50);
 } 

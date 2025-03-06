@@ -40,8 +40,8 @@ void MainWindow::setupUi()
     m_sidebar = new QFrame(m_centralWidget);
     m_sidebar->setObjectName("sidebar");
     m_sidebar->setFrameShape(QFrame::NoFrame);
-    m_sidebar->setMinimumWidth(200);
-    m_sidebar->setMaximumWidth(200);
+    m_sidebar->setMinimumWidth(80);
+    m_sidebar->setMaximumWidth(70);
     
     // Use system palette colors for sidebar
     QPalette palette = QApplication::palette();
@@ -53,8 +53,9 @@ void MainWindow::setupUi()
     m_sidebar->setStyleSheet(sidebarStyle);
     
     m_sidebarLayout = new QVBoxLayout(m_sidebar);
-    m_sidebarLayout->setSpacing(5);
-    m_sidebarLayout->setContentsMargins(0, 10, 0, 10);
+    m_sidebarLayout->setSpacing(10);
+    m_sidebarLayout->setContentsMargins(10, 10, 10, 10);
+    m_sidebarLayout->setAlignment(Qt::AlignCenter);
     
     // Create content stack
     m_contentStack = new QStackedWidget(m_centralWidget);
@@ -97,7 +98,7 @@ void MainWindow::createContentPages()
     m_contentStack->addWidget(m_mdiView);
     
     // Create other content pages
-    QStringList pageTitles = {"Dashboard", "User Profile", "Settings"};
+    QStringList pageTitles = {"Dashboard", "Modules", "Settings"};
     
     for (const QString &title : pageTitles) {
         QWidget *page = new QWidget();
