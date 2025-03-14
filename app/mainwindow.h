@@ -10,6 +10,7 @@
 #include <QVector>
 #include "sidebarbutton.h"
 #include "mdiview.h"
+#include "coremoduleview.h"
 
 class MainWindow : public QMainWindow
 {
@@ -43,6 +44,9 @@ private:
     
     // MDI View
     MdiView *m_mdiView;
+    
+    // Core Module View
+    CoreModuleView *m_coreModuleView;
 };
 
 #endif // MAINWINDOW_H 

@@ -12,6 +12,15 @@ find_package(Qt6 COMPONENTS Widgets REQUIRED)
 # Add interfaces directory to include path
 include_directories(${CMAKE_CURRENT_SOURCE_DIR})
 
+# Add logos_core include directories
+include_directories(
+    ${CMAKE_CURRENT_SOURCE_DIR}/../core/host
+    ${CMAKE_CURRENT_SOURCE_DIR}/../core
+)
+
+# Set logos_core library path
+link_directories(${CMAKE_CURRENT_SOURCE_DIR}/../core/build/lib)
+
 set(PROJECT_SOURCES
     main.cpp
     mainwindow.h
@@ -24,6 +33,10 @@ set(PROJECT_SOURCES
     mdiview.cpp
     modulesview.h
     modulesview.cpp
+    dashboardview.h
+    dashboardview.cpp
+    coremoduleview.h
+    coremoduleview.cpp
     interfaces/IComponent.h
     resources.qrc
 )
@@ -32,19 +45,20 @@ qt_add_executable(LogosApp
     ${PROJECT_SOURCES}
 )
 
-target_link_libraries(LogosApp PRIVATE Qt6::Widgets)
-
-# Create plugins directory in build folder and copy plugins
-add_custom_command(TARGET LogosApp POST_BUILD
-    COMMAND ${CMAKE_COMMAND} -E make_directory ${CMAKE_CURRENT_BINARY_DIR}/plugins
-    COMMAND ${CMAKE_COMMAND} -E echo "Creating plugins directory at ${CMAKE_CURRENT_BINARY_DIR}/plugins"
+# Link with logos_core library
+target_link_libraries(LogosApp PRIVATE 
+    Qt6::Widgets
+    ${CMAKE_CURRENT_SOURCE_DIR}/../core/build/lib/liblogos_core.dylib
 )
 
-# Copy plugins from component-system to our app's plugins directory
+# Create bin/plugins directory in build folder
 add_custom_command(TARGET LogosApp POST_BUILD
-    COMMAND ${CMAKE_COMMAND} -E echo "Copying plugins from ${CMAKE_SOURCE_DIR}/../reference/component-system/build/app/plugins/ to ${CMAKE_CURRENT_BINARY_DIR}/plugins/"
-    COMMAND ${CMAKE_COMMAND} -E copy_if_different
-        ${CMAKE_SOURCE_DIR}/../reference/component-system/build/app/plugins/counter.dylib
-        ${CMAKE_SOURCE_DIR}/../reference/component-system/build/app/plugins/colorchanger.dylib
-        ${CMAKE_CURRENT_BINARY_DIR}/plugins/
-) 
+    COMMAND ${CMAKE_COMMAND} -E make_directory ${CMAKE_CURRENT_BINARY_DIR}/bin/plugins
+    COMMAND ${CMAKE_COMMAND} -E echo "Creating plugins directory at ${CMAKE_CURRENT_BINARY_DIR}/bin/plugins"
+)
+
+# Build the plugins first
+add_custom_command(TARGET LogosApp PRE_BUILD
+    COMMAND ${CMAKE_COMMAND} -E echo "Building plugins..."
+    COMMAND cd ${CMAKE_CURRENT_SOURCE_DIR}/../plugins && mkdir -p build && cd build && cmake .. && make
+)

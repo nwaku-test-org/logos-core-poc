@@ -6,6 +6,9 @@
 #include <QHBoxLayout>
 #include <QPushButton>
 #include <QMap>
+#include <QJsonObject>
+#include <QJsonArray>
+#include <QJsonDocument>
 #include "interfaces/IComponent.h"
 #include "mdiview.h"
 

@@ -149,14 +149,21 @@ void ModulesView::setupPluginButtons(QVBoxLayout* buttonLayout)
         qDebug() << "Found" << plugins.size() << "plugins:" << plugins;
         
         for (const QString& plugin : plugins) {
-            QHBoxLayout* pluginLayout = new QHBoxLayout();
+            QFrame* pluginFrame = new QFrame(this);
+            pluginFrame->setFrameStyle(QFrame::StyledPanel | QFrame::Raised);
+            QVBoxLayout* pluginLayout = new QVBoxLayout(pluginFrame);
             
+            // Create header layout
+            QHBoxLayout* headerLayout = new QHBoxLayout();
+            
+            // Plugin name with bold font
             QLabel* pluginLabel = new QLabel(plugin, this);
             QFont pluginFont = pluginLabel->font();
             pluginFont.setBold(true);
             pluginLabel->setFont(pluginFont);
             pluginLabel->setMinimumWidth(100);
             
+            // Load and unload buttons
             QPushButton* loadButton = new QPushButton("Load", this);
             QPushButton* unloadButton = new QPushButton("Unload", this);
             
@@ -164,13 +171,79 @@ void ModulesView::setupPluginButtons(QVBoxLayout* buttonLayout)
             m_loadButtons[plugin] = loadButton;
             m_unloadButtons[plugin] = unloadButton;
             
-            // Add widgets to layout
-            pluginLayout->addWidget(pluginLabel);
-            pluginLayout->addStretch();
-            pluginLayout->addWidget(loadButton);
-            pluginLayout->addWidget(unloadButton);
+            // Add widgets to header layout
+            headerLayout->addWidget(pluginLabel);
+            headerLayout->addStretch();
+            headerLayout->addWidget(loadButton);
+            headerLayout->addWidget(unloadButton);
             
-            buttonLayout->addLayout(pluginLayout);
+            // Add header layout to plugin layout
+            pluginLayout->addLayout(headerLayout);
+            
+            // Read and display metadata
+            QString pluginPath = getPluginPath(plugin);
+            QPluginLoader loader(pluginPath);
+            QJsonObject metadata = loader.metaData();
+            QJsonObject customMetadata = metadata.value("MetaData").toObject();
+            
+            if (!customMetadata.isEmpty()) {
+                // Create metadata grid
+                QGridLayout* metadataLayout = new QGridLayout();
+                int row = 0;
+                
+                // Helper function to add metadata field
+                auto addMetadataField = [&](const QString& label, const QString& value) {
+                    if (!value.isEmpty()) {
+                        QLabel* fieldLabel = new QLabel(label + ":", this);
+                        fieldLabel->setStyleSheet("color: #666;");
+                        QLabel* fieldValue = new QLabel(value, this);
+                        metadataLayout->addWidget(fieldLabel, row, 0);
+                        metadataLayout->addWidget(fieldValue, row, 1);
+                        row++;
+                    }
+                };
+                
+                addMetadataField("Version", customMetadata.value("version").toString());
+                addMetadataField("Author", customMetadata.value("author").toString());
+                addMetadataField("Type", customMetadata.value("type").toString());
+                addMetadataField("Description", customMetadata.value("description").toString());
+                
+                // Add capabilities
+                QJsonArray capabilities = customMetadata.value("capabilities").toArray();
+                if (!capabilities.isEmpty()) {
+                    QLabel* capLabel = new QLabel("Capabilities:", this);
+                    capLabel->setStyleSheet("color: #666;");
+                    QLabel* capValue = new QLabel(this);
+                    QStringList capList;
+                    for (const QJsonValue& cap : capabilities) {
+                        capList << cap.toString();
+                    }
+                    capValue->setText(capList.join(", "));
+                    metadataLayout->addWidget(capLabel, row, 0);
+                    metadataLayout->addWidget(capValue, row, 1);
+                    row++;
+                }
+                
+                // Add dependencies
+                QJsonArray dependencies = customMetadata.value("dependencies").toArray();
+                if (!dependencies.isEmpty()) {
+                    QLabel* depLabel = new QLabel("Dependencies:", this);
+                    depLabel->setStyleSheet("color: #666;");
+                    QLabel* depValue = new QLabel(this);
+                    QStringList depList;
+                    for (const QJsonValue& dep : dependencies) {
+                        depList << dep.toString();
+                    }
+                    depValue->setText(depList.join(", "));
+                    metadataLayout->addWidget(depLabel, row, 0);
+                    metadataLayout->addWidget(depValue, row, 1);
+                }
+                
+                pluginLayout->addLayout(metadataLayout);
+            }
+            
+            // Add plugin frame to main layout
+            buttonLayout->addWidget(pluginFrame);
             
             // Connect buttons to slots using lambda functions to pass the plugin name
             connect(loadButton, &QPushButton::clicked, this, [this, plugin]() {
@@ -256,24 +329,30 @@ QStringList ModulesView::findAvailablePlugins()
         // Filter and clean up plugin names
         for (const QString& entry : entries) {
             QString baseName = entry;
+            QString pluginName;
+            bool isValid = false;
+            
 #ifdef Q_OS_MAC
             if (baseName.endsWith(".dylib")) {
-                baseName.chop(6); // Remove .dylib
-                if (!result.contains(baseName)) {
-                    result.append(baseName);
-                    qDebug() << "Found plugin:" << baseName << "in" << searchPath;
-                }
+                pluginName = baseName;
+                pluginName.chop(6); // Remove .dylib
+                isValid = true;
             }
 #else
-            if (baseName.startsWith("lib") && baseName.endsWith(".so")) {
-                baseName.remove(0, 3); // Remove lib
-                baseName.chop(3);      // Remove .so
-                if (!result.contains(baseName)) {
-                    result.append(baseName);
-                    qDebug() << "Found plugin:" << baseName << "in" << searchPath;
+            if (baseName.endsWith(".so")) {
+                pluginName = baseName;
+                if (pluginName.startsWith("lib")) {
+                    pluginName.remove(0, 3); // Remove lib prefix
                 }
+                pluginName.chop(3); // Remove .so
+                isValid = true;
             }
 #endif
+
+            if (isValid && !result.contains(pluginName)) {
+                result.append(pluginName);
+                qDebug() << "Found plugin:" << pluginName << "in" << searchPath;
+            }
         }
     }
     
@@ -289,12 +368,15 @@ QString ModulesView::getPluginPath(const QString& name)
     searchPaths << QCoreApplication::applicationDirPath() + "/plugins/";
     searchPaths << QDir::currentPath() + "/plugins/";
     
-    for (const QString& basePath : searchPaths) {
+    // Generate platform-specific filename
 #ifdef Q_OS_MAC
-        QString fullPath = basePath + name + ".dylib";
+    QString pluginFileName = name + ".dylib";
 #else
-        QString fullPath = basePath + "lib" + name + ".so";
+    QString pluginFileName = "lib" + name + ".so";
 #endif
+
+    for (const QString& basePath : searchPaths) {
+        QString fullPath = basePath + pluginFileName;
         QFileInfo fileInfo(fullPath);
         if (fileInfo.exists()) {
             qDebug() << "Found plugin file at:" << fullPath;
@@ -303,11 +385,7 @@ QString ModulesView::getPluginPath(const QString& name)
     }
     
     // Default path if not found
-#ifdef Q_OS_MAC
-    QString defaultPath = QCoreApplication::applicationDirPath() + "/plugins/" + name + ".dylib";
-#else
-    QString defaultPath = QCoreApplication::applicationDirPath() + "/plugins/lib" + name + ".so";
-#endif
+    QString defaultPath = QCoreApplication::applicationDirPath() + "/plugins/" + pluginFileName;
     qDebug() << "Using default plugin path:" << defaultPath;
     return defaultPath;
 }

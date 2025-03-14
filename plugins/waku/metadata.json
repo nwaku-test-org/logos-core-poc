@@ -1,0 +1,9 @@
+{
+    "name": "waku",
+    "version": "0.1.0",
+    "description": "A plugin for Waku functionality",
+    "author": "Logos",
+    "license": "MIT",
+    "main": "waku",
+    "dependencies": {}
+} 

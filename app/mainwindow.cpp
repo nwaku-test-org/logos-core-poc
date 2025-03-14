@@ -4,6 +4,8 @@
 #include <QSpacerItem>
 #include <QFont>
 #include "modulesview.h"
+#include "dashboardview.h"
+#include "coremoduleview.h"
 
 MainWindow::MainWindow(QWidget *parent)
     : QMainWindow(parent)
@@ -75,7 +77,8 @@ void MainWindow::createSidebar()
     ButtonInfo buttonInfos[] = {
         {"Apps", ":/icons/home.png"},
         {"Dashboard", ":/icons/chart.png"},
-        {"Modules", ":/icons/modules.png"},
+        {"UI Modules", ":/icons/modules.png"},
+        {"Core Modules", ":/icons/modules.png"}, // Reusing modules icon for now
         {"Settings", ":/icons/settings.png"}
     };
     
@@ -96,35 +99,26 @@ void MainWindow::createContentPages()
     m_mdiView = new MdiView();
     m_contentStack->addWidget(m_mdiView);
     
-    // Dashboard page
-    QWidget *dashboardPage = new QWidget();
-    QVBoxLayout *dashboardLayout = new QVBoxLayout(dashboardPage);
-    
-    QLabel *dashboardTitle = new QLabel("Dashboard", dashboardPage);
-    QFont titleFont = dashboardTitle->font();
-    titleFont.setPointSize(24);
-    titleFont.setBold(true);
-    dashboardTitle->setFont(titleFont);
-    dashboardTitle->setAlignment(Qt::AlignCenter);
-    
-    QLabel *dashboardContent = new QLabel("This is the Dashboard content area.", dashboardPage);
-    dashboardContent->setAlignment(Qt::AlignCenter);
-    
-    dashboardLayout->addWidget(dashboardTitle);
-    dashboardLayout->addWidget(dashboardContent);
-    dashboardLayout->addStretch();
-    
-    m_contentStack->addWidget(dashboardPage);
+    // Dashboard page with plugin list
+    DashboardView *dashboardView = new DashboardView();
+    m_contentStack->addWidget(dashboardView);
     
     // Modules page - pass the MainWindow instance to ModulesView
     ModulesView *modulesView = new ModulesView(nullptr, this);
     m_contentStack->addWidget(modulesView);
+    
+    // Core Modules page
+    m_coreModuleView = new CoreModuleView();
+    m_contentStack->addWidget(m_coreModuleView);
     
     // Settings page
     QWidget *settingsPage = new QWidget();
     QVBoxLayout *settingsLayout = new QVBoxLayout(settingsPage);
     
     QLabel *settingsTitle = new QLabel("Settings", settingsPage);
+    QFont titleFont = settingsTitle->font();
+    titleFont.setPointSize(24);
+    titleFont.setBold(true);
     settingsTitle->setFont(titleFont);
     settingsTitle->setAlignment(Qt::AlignCenter);
     
