@@ -15,6 +15,3 @@ set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin)
 
 # Build host first to ensure logos_core is built before plugins
 add_subdirectory(host)
-
-# Then build plugins
-add_subdirectory(${CMAKE_SOURCE_DIR}/../plugins ${CMAKE_BINARY_DIR}/plugins_build) 
