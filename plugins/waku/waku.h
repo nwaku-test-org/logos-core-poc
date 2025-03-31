@@ -1,6 +1,7 @@
 #pragma once
 
 #include <QtCore/QObject>
+#include <functional>
 #include "waku_interface.h"
 
 class Waku : public QObject, public WakuInterface {
@@ -16,18 +17,12 @@ public:
     QString name() const override { return "waku"; }
     QString version() const override { return "0.1.0"; }
 
-public slots:
     // WakuInterface implementation
-    void initWaku() override;
-    QString getVersion() override;
-
-signals:
-    // Signal emitted when Waku is initialized
-    void wakuInitialized(bool success, const QString &message);
-    
-    // Signal emitted when getVersion is called
-    void versionReceived(const QString &version);
+    void initWaku(WakuInitCallback callback = nullptr) override;
+    void getVersion(WakuVersionCallback callback = nullptr) override;
 
 private:
     void* wakuCtx;
+    WakuInitCallback initCallback;
+    WakuVersionCallback versionCallback;
 }; 

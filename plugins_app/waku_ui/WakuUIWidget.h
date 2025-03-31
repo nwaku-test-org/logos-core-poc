@@ -1,10 +1,10 @@
 #pragma once
 
 #include <QWidget>
+#include "../../plugins/waku/waku_interface.h"
 
 class QPushButton;
 class QLabel;
-class QObject;
 
 class WakuUIWidget : public QWidget {
     Q_OBJECT
@@ -12,17 +12,14 @@ class WakuUIWidget : public QWidget {
 public:
     explicit WakuUIWidget(QWidget* parent = nullptr);
 
-private slots:
+private:
     void onInitButtonClicked();
     void onVersionButtonClicked();
-    void onWakuInitialized(bool success, const QString &message);
-    void onVersionReceived(const QString &version);
 
-private:
     QPushButton* initButton;
     QPushButton* versionButton;
     QLabel* statusLabel;
-    QObject* wakuTestPlugin;
+    WakuInterface* wakuPlugin;
 
-    bool connectToWakuTestPlugin();
+    bool connectToWakuPlugin();
 }; 

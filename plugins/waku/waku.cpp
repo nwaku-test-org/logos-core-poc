@@ -6,9 +6,8 @@
 namespace {
     // Structure to hold version data
     struct VersionData {
-        QString* version;
-        bool* received;
-        Waku* waku; // Add pointer to Waku object
+        Waku* waku;
+        WakuVersionCallback callback;
     };
 
     // Static callback for waku_version
@@ -22,13 +21,19 @@ namespace {
             version = "Error getting version";
         }
         
-        // Emit signal with the received version
-        if (data->waku) {
-            data->waku->versionReceived(version);
+        // Call the user callback if provided
+        if (data->callback) {
+            data->callback(version);
         }
         
         delete data;
     }
+
+    // Structure to hold init data
+    struct InitData {
+        Waku* waku;
+        WakuInitCallback callback;
+    };
 
     // Static callback for waku_new
     void init_callback(int callerRet, const char* msg, size_t len, void* userData) {
@@ -43,10 +48,13 @@ namespace {
             qDebug() << "Waku initialization failed:" << message;
         }
         
-        // Emit signal if userData contains Waku pointer
+        // Call user callback if provided
         if (userData) {
-            Waku* waku = static_cast<Waku*>(userData);
-            waku->wakuInitialized(success, message);
+            auto* data = static_cast<InitData*>(userData);
+            if (data->callback) {
+                data->callback(success, message);
+            }
+            delete data;
         }
     }
 }
@@ -62,7 +70,7 @@ Waku::~Waku() {
     }
 }
 
-void Waku::initWaku() {
+void Waku::initWaku(WakuInitCallback callback) {
     qDebug() << "Initializing Waku...";
     // Clean up existing instance if any
     if (wakuCtx) {
@@ -70,37 +78,42 @@ void Waku::initWaku() {
         wakuCtx = nullptr;
     }
 
-    // Initialize Waku - passing 'this' as userData to access signals
-    wakuCtx = waku_new("{}", init_callback, this);
+    // Save the callback
+    InitData* userData = new InitData{this, callback};
+
+    // Initialize Waku - passing the callback data as userData
+    wakuCtx = waku_new("{}", init_callback, userData);
     if (!wakuCtx) {
         qDebug() << "Failed to initialize Waku";
-        // Emit signal for failure case
-        emit wakuInitialized(false, "Failed to initialize Waku");
+        // Call callback for failure case
+        if (callback) {
+            callback(false, "Failed to initialize Waku");
+        }
+        delete userData;
     }
 }
 
-QString Waku::getVersion() {
+void Waku::getVersion(WakuVersionCallback callback) {
     qDebug() << "Getting Waku version...";
     if (!wakuCtx) {
         QString errorMsg = "Waku not initialized";
         qDebug() << errorMsg;
-        emit versionReceived(errorMsg);
-        return errorMsg;
+        if (callback) {
+            callback(errorMsg);
+        }
+        return;
     }
 
-    // Create version data for the callback, including this pointer for signal emission
-    auto* data = new VersionData{nullptr, nullptr, this};
+    // Create version data for the callback, including callback function
+    auto* data = new VersionData{this, callback};
 
     // Get version
     int ret = waku_version(wakuCtx, version_callback, data);
     if (ret != RET_OK) {
         QString errorMsg = "Failed to get version";
+        if (callback) {
+            callback(errorMsg);
+        }
         delete data;
-        emit versionReceived(errorMsg);
-        return errorMsg;
     }
-
-    // We don't need to wait for the callback anymore, as we're using signals and slots
-    // The UI will be updated when the callback emits the versionReceived signal
-    return "Version request sent";
 } 
