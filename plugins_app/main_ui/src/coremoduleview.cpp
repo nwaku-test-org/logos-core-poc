@@ -4,7 +4,7 @@
 #include <QStringList>
 #include <QCoreApplication>
 #include <QDebug>
-#include "../core/plugin_registry.h"
+#include "core/plugin_registry.h"
 
 CoreModuleView::CoreModuleView(QWidget *parent)
     : QWidget(parent)
@@ -18,9 +18,9 @@ CoreModuleView::CoreModuleView(QWidget *parent)
     createPluginList();
     
     // Set up timer to update plugin list every 5 seconds
-    m_updateTimer = new QTimer(this);
-    connect(m_updateTimer, &QTimer::timeout, this, &CoreModuleView::updatePluginList);
-    m_updateTimer->start(5000);
+    // m_updateTimer = new QTimer(this);
+    // connect(m_updateTimer, &QTimer::timeout, this, &CoreModuleView::updatePluginList);
+    // m_updateTimer->start(5000);
     
     // Initial update
     updatePluginList();
@@ -104,6 +104,7 @@ void CoreModuleView::createPluginList()
 
 void CoreModuleView::updatePluginList()
 {
+    qDebug() << "\n\n----------> Updating plugin list\n\n";
     // Get the core_manager plugin
     QObject* coreManagerPlugin = PluginRegistry::getPlugin<QObject>("core_manager");
     if (!coreManagerPlugin) {
@@ -121,11 +122,17 @@ void CoreModuleView::updatePluginList()
     m_pluginList->clear();
     
     if (plugins.isEmpty()) {
+        qDebug() << "No plugins loaded";
         QListWidgetItem* item = new QListWidgetItem("No plugins loaded");
         item->setIcon(QIcon(":/icons/plugin.png"));
         item->setTextAlignment(Qt::AlignLeft | Qt::AlignVCenter);
         m_pluginList->addItem(item);
         return;
+    } else {
+        qDebug() << "Plugins loaded:";
+        foreach (const QString &pluginName, plugins) {
+            qDebug() << "  " << pluginName;
+        }
     }
     
     // Add each plugin to the list

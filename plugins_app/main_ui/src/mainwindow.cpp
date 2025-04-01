@@ -7,9 +7,11 @@
 #include <QMenu>
 #include <QStatusBar>
 #include <QLabel>
+#include <QDebug>
 #include "modulesview.h"
 #include "dashboardview.h"
 #include "coremoduleview.h"
+#include "core/plugin_registry.h"
 
 MainWindow::MainWindow(QWidget *parent)
     : QWidget(parent)
@@ -104,8 +106,8 @@ void MainWindow::createContentPages()
     ModulesView *modulesView = new ModulesView(nullptr, this);
     m_contentStack->addWidget(modulesView);
     
-    // Core Modules page
-    m_coreModuleView = new CoreModuleView();
+    // Core Modules page - create directly
+    m_coreModuleView = new CoreModuleView(nullptr);
     m_contentStack->addWidget(m_coreModuleView);
     
     // Settings page

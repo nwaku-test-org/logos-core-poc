@@ -44,6 +44,7 @@ void CoreManagerPlugin::helloWorld() {
 }
 
 QStringList CoreManagerPlugin::getLoadedPlugins() {
+    qDebug() << "\n\n----------> Getting loaded plugins\n\n";
     QStringList pluginList;
     char** plugins = logos_core_get_loaded_plugins();
     
@@ -58,4 +59,4 @@ QStringList CoreManagerPlugin::getLoadedPlugins() {
     delete[] plugins;
     
     return pluginList;
-} 
+}

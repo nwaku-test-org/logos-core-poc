@@ -36,20 +36,6 @@ set(PROJECT_SOURCES
     window.cpp
     core_manager.h
     core_manager.cpp
-    ui/mainwindow.h
-    ui/mainwindow.cpp
-    ui/sidebarbutton.h
-    ui/sidebarbutton.cpp
-    ui/mdichild.h
-    ui/mdichild.cpp
-    ui/mdiview.h
-    ui/mdiview.cpp
-    ui/modulesview.h
-    ui/modulesview.cpp
-    ui/dashboardview.h
-    ui/dashboardview.cpp
-    ui/coremoduleview.h
-    ui/coremoduleview.cpp
     interfaces/IComponent.h
     resources.qrc
 )
@@ -80,7 +66,9 @@ add_custom_command(TARGET LogosApp POST_BUILD
     COMMAND ${CMAKE_COMMAND} -E make_directory ${CMAKE_CURRENT_BINARY_DIR}/bin/plugins
     COMMAND ${CMAKE_COMMAND} -E echo "Creating plugins directory at ${CMAKE_CURRENT_BINARY_DIR}/bin/plugins"
 
-
     COMMAND ${CMAKE_COMMAND} -E make_directory ${CMAKE_CURRENT_BINARY_DIR}/plugins
     COMMAND ${CMAKE_COMMAND} -E echo "Creating app plugins directory at ${CMAKE_CURRENT_BINARY_DIR}/bin/plugins"
 )
+
+# Add plugins_app directory
+# add_subdirectory(${CMAKE_SOURCE_DIR}/plugins_app/main_ui)

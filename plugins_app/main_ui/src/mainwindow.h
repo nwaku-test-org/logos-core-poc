@@ -1,15 +1,15 @@
-#ifndef MAINWINDOW_H
-#define MAINWINDOW_H
+#pragma once
 
 #include <QWidget>
-#include <QFrame>
 #include <QHBoxLayout>
 #include <QVBoxLayout>
+#include <QFrame>
 #include <QStackedWidget>
 #include <QVector>
 #include "sidebarbutton.h"
 #include "mdiview.h"
-#include "coremoduleview.h"
+
+class CoreModuleView;
 
 class MainWindow : public QWidget
 {
@@ -30,7 +30,6 @@ private:
     void createSidebar();
     void createContentPages();
     
-    QWidget *m_centralWidget;
     QHBoxLayout *m_mainLayout;
     
     // Sidebar
@@ -46,6 +45,4 @@ private:
     
     // Core Module View
     CoreModuleView *m_coreModuleView;
-};
-
-#endif // MAINWINDOW_H 
+}; 

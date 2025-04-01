@@ -11,7 +11,7 @@ echo "Building app plugins..."
 mkdir -p plugins_app/build/plugins
 
 # List of plugins to build
-plugins=("counter" "colorchanger" "waku_ui")
+plugins=("counter" "colorchanger" "waku_ui" "main_ui")
 
 # Build each plugin individually
 for plugin_name in "${plugins[@]}"; do
