@@ -1,23 +1,22 @@
 #ifndef MAINWINDOW_H
 #define MAINWINDOW_H
 
-#include <QMainWindow>
-#include <QVBoxLayout>
-#include <QHBoxLayout>
-#include <QStackedWidget>
-#include <QLabel>
+#include <QWidget>
 #include <QFrame>
+#include <QHBoxLayout>
+#include <QVBoxLayout>
+#include <QStackedWidget>
 #include <QVector>
 #include "sidebarbutton.h"
 #include "mdiview.h"
 #include "coremoduleview.h"
 
-class MainWindow : public QMainWindow
+class MainWindow : public QWidget
 {
     Q_OBJECT
 
 public:
-    MainWindow(QWidget *parent = nullptr);
+    explicit MainWindow(QWidget *parent = nullptr);
     ~MainWindow();
     
     // Get the MDI view

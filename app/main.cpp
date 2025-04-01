@@ -1,4 +1,4 @@
-#include "ui/mainwindow.h"
+#include "window.h"
 #include <QApplication>
 #include <QIcon>
 #include <QDir>
@@ -43,7 +43,7 @@ int main(int argc, char *argv[])
     app.setWindowIcon(QIcon(":/icons/logos.png"));
     
     // Create and show the main window
-    MainWindow mainWindow;
+    Window mainWindow;
     mainWindow.show();
     
     // Run the application

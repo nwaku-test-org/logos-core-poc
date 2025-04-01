@@ -32,6 +32,8 @@ link_directories(${LOGOS_CORE_DIR}/build/lib)
 
 set(PROJECT_SOURCES
     main.cpp
+    window.h
+    window.cpp
     core_manager.h
     core_manager.cpp
     ui/mainwindow.h

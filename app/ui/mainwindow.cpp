@@ -6,12 +6,13 @@
 #include <QMenuBar>
 #include <QMenu>
 #include <QStatusBar>
+#include <QLabel>
 #include "modulesview.h"
 #include "dashboardview.h"
 #include "coremoduleview.h"
 
 MainWindow::MainWindow(QWidget *parent)
-    : QMainWindow(parent)
+    : QWidget(parent)
 {
     setupUi();
     createSidebar();
@@ -22,10 +23,6 @@ MainWindow::MainWindow(QWidget *parent)
         m_sidebarButtons[0]->setActive(true);
         m_contentStack->setCurrentIndex(0);
     }
-    
-    // Set window title and size
-    setWindowTitle("Logos Core POC");
-    resize(1024, 768);
 }
 
 MainWindow::~MainWindow()
@@ -34,16 +31,13 @@ MainWindow::~MainWindow()
 
 void MainWindow::setupUi()
 {
-    // Create central widget and main layout
-    m_centralWidget = new QWidget(this);
-    setCentralWidget(m_centralWidget);
-    
-    m_mainLayout = new QHBoxLayout(m_centralWidget);
+    // Create main layout
+    m_mainLayout = new QHBoxLayout(this);
     m_mainLayout->setSpacing(0);
     m_mainLayout->setContentsMargins(0, 0, 0, 0);
     
     // Create sidebar frame
-    m_sidebar = new QFrame(m_centralWidget);
+    m_sidebar = new QFrame(this);
     m_sidebar->setObjectName("sidebar");
     m_sidebar->setFrameShape(QFrame::NoFrame);
     m_sidebar->setMinimumWidth(80);
@@ -62,7 +56,7 @@ void MainWindow::setupUi()
     m_sidebarLayout->setAlignment(Qt::AlignCenter);
     
     // Create content stack
-    m_contentStack = new QStackedWidget(m_centralWidget);
+    m_contentStack = new QStackedWidget(this);
     
     // Add widgets to main layout
     m_mainLayout->addWidget(m_sidebar);
