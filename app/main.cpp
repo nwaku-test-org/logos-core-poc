@@ -7,69 +7,37 @@
 #include <memory>
 #include <QStringList>
 #include <QDebug>
-#include "../core/host/logos_core.h"
 #include "core_manager.h"
-
-// Forward declare the logos_core functions we need to call directly
-extern "C" {
-    void logos_core_set_plugins_dir(const char* plugins_dir);
-    void logos_core_start();
-    void logos_core_cleanup();
-    char** logos_core_get_loaded_plugins();
-}
-
-void printLoadedPlugins() {
-    // Get the array of loaded plugins
-    char** plugins = logos_core_get_loaded_plugins();
-    
-    // Convert to QStringList for easier handling
-    QStringList pluginList;
-    if (plugins) {
-        for (char** p = plugins; *p != nullptr; ++p) {
-            pluginList << QString::fromUtf8(*p);
-            delete[] *p;  // Free each string as we go
-        }
-        delete[] plugins;  // Free the array itself
-    }
-    
-    // Display the results using Qt
-    if (pluginList.isEmpty()) {
-        qInfo() << "No plugins loaded.";
-        return;
-    }
-    
-    qInfo() << "Currently loaded plugins:";
-    foreach (const QString &plugin, pluginList) {
-        qInfo() << "  -" << plugin;
-    }
-    qInfo() << "Total plugins:" << pluginList.size();
-}
 
 int main(int argc, char *argv[])
 {
-    // Create QApplication first - this will be used by both our UI and logos_core
+    // Create QApplication first
     QApplication app(argc, argv);
     
     // Initialize CoreManager
-    CoreManager::instance().initialize(argc, argv);
-    
-    // commenting for now since this seems to create a new instance of QApplication
-    // logos_core_init(argc, argv);
-
-    std::cout << "Logos Core initialized successfully!" << std::endl;
+    CoreManager& core = CoreManager::instance();
+    core.initialize(argc, argv);
 
     // Set the plugins directory
     QString pluginsDir = QDir::cleanPath(QCoreApplication::applicationDirPath() + "/bin/plugins");
     std::cout << "Setting plugins directory to: " << pluginsDir.toStdString() << std::endl;
-    logos_core_set_plugins_dir(pluginsDir.toUtf8().constData());
+    core.setPluginsDirectory(pluginsDir);
 
-    // Start logos core
-    logos_core_start();
+    // Start the core
+    core.start();
     std::cout << "Logos Core started successfully!" << std::endl;
     
     // Print loaded plugins initially
-    std::cout << "\nInitial plugin list:" << std::endl;
-    printLoadedPlugins();
+    QStringList plugins = core.getLoadedPlugins();
+    if (plugins.isEmpty()) {
+        qInfo() << "No plugins loaded.";
+    } else {
+        qInfo() << "Currently loaded plugins:";
+        foreach (const QString &plugin, plugins) {
+            qInfo() << "  -" << plugin;
+        }
+        qInfo() << "Total plugins:" << plugins.size();
+    }
 
     // Set application icon
     app.setWindowIcon(QIcon(":/icons/logos.png"));
@@ -78,11 +46,11 @@ int main(int argc, char *argv[])
     MainWindow mainWindow;
     mainWindow.show();
     
-    // Use QApplication::exec() to handle both our UI and logos_core events
+    // Run the application
     int result = app.exec();
 
     // Cleanup
-    logos_core_cleanup();
+    core.cleanup();
     
     return result;
 } 

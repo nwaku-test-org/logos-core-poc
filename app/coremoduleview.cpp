@@ -3,23 +3,7 @@
 #include <memory>
 #include <QStringList>
 #include <QCoreApplication>
-#include "../core/interface.h"
-
-// Forward declare the logos_core functions we need
-extern "C" {
-    char** logos_core_get_loaded_plugins();
-}
-
-// Custom deleter for the plugins array
-struct PluginsArrayDeleter {
-    void operator()(char** plugins) {
-        if (!plugins) return;
-        for (char** p = plugins; *p != nullptr; ++p) {
-            delete[] *p;
-        }
-        delete[] plugins;
-    }
-};
+#include "core_manager.h"
 
 CoreModuleView::CoreModuleView(QWidget *parent)
     : QWidget(parent)
@@ -119,13 +103,13 @@ void CoreModuleView::createPluginList()
 
 void CoreModuleView::updatePluginList()
 {
-    // Use smart pointer with custom deleter for automatic cleanup
-    std::unique_ptr<char*, PluginsArrayDeleter> plugins(logos_core_get_loaded_plugins());
+    // Get plugins using CoreManager
+    QStringList plugins = CoreManager::instance().getLoadedPlugins();
     
     // Clear the current list
     m_pluginList->clear();
     
-    if (!plugins || !plugins.get()[0]) {
+    if (plugins.isEmpty()) {
         QListWidgetItem* item = new QListWidgetItem("No plugins loaded");
         item->setIcon(QIcon(":/icons/plugin.png"));
         item->setTextAlignment(Qt::AlignLeft | Qt::AlignVCenter);
@@ -134,8 +118,7 @@ void CoreModuleView::updatePluginList()
     }
     
     // Add each plugin to the list
-    for (char** p = plugins.get(); *p != nullptr; ++p) {
-        QString pluginName = QString::fromUtf8(*p);
+    foreach (const QString &pluginName, plugins) {
         QListWidgetItem* item = new QListWidgetItem(pluginName);
         item->setIcon(QIcon(":/icons/plugin.png"));
         item->setTextAlignment(Qt::AlignLeft | Qt::AlignVCenter);
