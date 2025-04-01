@@ -36,8 +36,20 @@ mkdir -p plugins
 # Go back to the root directory
 cd ../../
 
+# Check if this is a build-only run
+if [ "$1" = "build" ]; then
+    echo "Core build completed. Exiting without running application."
+    exit 0
+fi
+
 # Note: Plugin building has been moved to build_core_plugins.sh
 # Make sure to run build_core_plugins.sh before this script if you need updated plugins
+
+# Check if the "all" argument was provided
+if [ "$1" = "all" ]; then
+    echo "Building plugins first..."
+    ./build_core_plugins.sh
+fi
 
 # Run the application
 echo "Starting logoscore application..."
