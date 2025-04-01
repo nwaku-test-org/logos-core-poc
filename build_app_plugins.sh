@@ -66,5 +66,11 @@ else
     find plugins_app/build/plugins -name "*.so" -type f -exec chmod 755 {} \;
 fi
 
+echo "Looking for plugin libraries in plugins_app/build/plugins directory..."
+find plugins_app/build/plugins -type f \( -name "*.dylib" -o -name "*.so" -o -name "*.dll" \) | while read plugin; do
+    echo "Copying plugin: $plugin"
+    cp "$plugin" "app/build/plugins/"
+done
+
 echo "App plugins built successfully!"
 echo "Plugins are available in: plugins_app/build/plugins/" 

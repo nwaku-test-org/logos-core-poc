@@ -75,10 +75,8 @@ add_custom_command(TARGET LogosApp POST_BUILD
 add_custom_command(TARGET LogosApp POST_BUILD
     COMMAND ${CMAKE_COMMAND} -E make_directory ${CMAKE_CURRENT_BINARY_DIR}/bin/plugins
     COMMAND ${CMAKE_COMMAND} -E echo "Creating plugins directory at ${CMAKE_CURRENT_BINARY_DIR}/bin/plugins"
-)
 
-# Build the plugins first
-add_custom_command(TARGET LogosApp PRE_BUILD
-    COMMAND ${CMAKE_COMMAND} -E echo "Building plugins..."
-    COMMAND cd ${CMAKE_CURRENT_SOURCE_DIR}/../plugins && mkdir -p build && cd build && cmake .. && make
+
+    COMMAND ${CMAKE_COMMAND} -E make_directory ${CMAKE_CURRENT_BINARY_DIR}/plugins
+    COMMAND ${CMAKE_COMMAND} -E echo "Creating app plugins directory at ${CMAKE_CURRENT_BINARY_DIR}/bin/plugins"
 )
