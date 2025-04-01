@@ -7,7 +7,9 @@
 #include <memory>
 #include <QStringList>
 #include <QDebug>
+#include <QMetaObject>
 #include "core_manager.h"
+#include "../core/plugin_registry.h"
 
 int main(int argc, char *argv[])
 {
@@ -37,6 +39,14 @@ int main(int argc, char *argv[])
             qInfo() << "  -" << plugin;
         }
         qInfo() << "Total plugins:" << plugins.size();
+    }
+
+    // Get the core_manager plugin and call helloWorld
+    QObject* coreManagerPlugin = PluginRegistry::getPlugin<QObject>("core_manager");
+    if (coreManagerPlugin) {
+        QMetaObject::invokeMethod(coreManagerPlugin, "helloWorld", Qt::DirectConnection);
+    } else {
+        qWarning() << "Core manager plugin not found!";
     }
 
     // Set application icon

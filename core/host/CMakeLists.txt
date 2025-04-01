@@ -4,6 +4,8 @@ set(CMAKE_AUTOMOC ON)
 set(LOGOS_CORE_SOURCES
     logos_core.cpp
     logos_core.h
+    core_manager.cpp
+    core_manager.h
     ../interface.h
     ../plugin_registry.h
 )

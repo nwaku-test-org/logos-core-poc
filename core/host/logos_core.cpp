@@ -1,5 +1,3 @@
-#define LOGOS_CORE_LIBRARY
-
 #include "logos_core.h"
 #include <QCoreApplication>
 #include <QPluginLoader>
@@ -14,6 +12,7 @@
 #include <QJsonArray>
 #include "../interface.h"
 #include "../plugin_registry.h"
+#include "core_manager.h"
 
 // Declare QObject* as a metatype so it can be stored in QVariant
 Q_DECLARE_METATYPE(QObject*)
@@ -169,7 +168,23 @@ static QStringList findPlugins(const QString &pluginsDir)
     return plugins;
 }
 
-// C API implementation
+// Helper function to initialize core manager
+static bool initializeCoreManager()
+{
+    qDebug() << "\n=== Initializing Core Manager ===";
+    
+    // Create the core manager instance directly
+    CoreManagerPlugin* coreManager = new CoreManagerPlugin();
+    
+    // Register it in the plugin registry
+    PluginRegistry::registerPlugin(coreManager, coreManager->name());
+    
+    // Add to loaded plugins list
+    g_loaded_plugins.append(coreManager->name());
+    
+    qDebug() << "Core manager initialized successfully";
+    return true;
+}
 
 void logos_core_init(int argc, char *argv[])
 {
@@ -196,6 +211,11 @@ void logos_core_start()
     // Clear the list of loaded plugins before loading new ones
     g_loaded_plugins.clear();
     
+    // First initialize the core manager
+    if (!initializeCoreManager()) {
+        qWarning() << "Failed to initialize core manager, continuing with other plugins...";
+    }
+    
     // Define the plugins directory path
     QString pluginsDir;
     if (!g_plugins_dir.isEmpty()) {
@@ -207,7 +227,7 @@ void logos_core_start()
     }
     qDebug() << "Looking for plugins in:" << pluginsDir;
     
-    // Find all plugins in the directory
+    // Find and load all plugins in the directory
     QStringList pluginPaths = findPlugins(pluginsDir);
     
     if (pluginPaths.isEmpty()) {

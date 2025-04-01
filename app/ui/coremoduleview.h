@@ -1,12 +1,10 @@
-#ifndef COREMODULEVIEW_H
-#define COREMODULEVIEW_H
+#pragma once
 
 #include <QWidget>
 #include <QVBoxLayout>
 #include <QLabel>
-#include <QTimer>
 #include <QListWidget>
-#include <QPushButton>
+#include <QTimer>
 
 class CoreModuleView : public QWidget
 {
@@ -23,11 +21,9 @@ private:
     void setupUi();
     void createPluginList();
 
-    QVBoxLayout *m_layout;
-    QLabel *m_titleLabel;
-    QLabel *m_subtitleLabel;
-    QListWidget *m_pluginList;
-    QTimer *m_updateTimer;
-};
-
-#endif // COREMODULEVIEW_H 
+    QVBoxLayout* m_layout;
+    QLabel* m_titleLabel;
+    QLabel* m_subtitleLabel;
+    QListWidget* m_pluginList;
+    QTimer* m_updateTimer;
+}; 

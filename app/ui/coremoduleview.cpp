@@ -3,7 +3,8 @@
 #include <memory>
 #include <QStringList>
 #include <QCoreApplication>
-#include "core_manager.h"
+#include <QDebug>
+#include "../core/plugin_registry.h"
 
 CoreModuleView::CoreModuleView(QWidget *parent)
     : QWidget(parent)
@@ -103,8 +104,18 @@ void CoreModuleView::createPluginList()
 
 void CoreModuleView::updatePluginList()
 {
-    // Get plugins using CoreManager
-    QStringList plugins = CoreManager::instance().getLoadedPlugins();
+    // Get the core_manager plugin
+    QObject* coreManagerPlugin = PluginRegistry::getPlugin<QObject>("core_manager");
+    if (!coreManagerPlugin) {
+        qWarning() << "Core manager plugin not found!";
+        return;
+    }
+
+    // Get the list of loaded plugins using invokeMethod
+    QStringList plugins;
+    QMetaObject::invokeMethod(coreManagerPlugin, "getLoadedPlugins", 
+                            Qt::DirectConnection,
+                            Q_RETURN_ARG(QStringList, plugins));
     
     // Clear the current list
     m_pluginList->clear();
