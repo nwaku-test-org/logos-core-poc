@@ -34,6 +34,8 @@ set(PROJECT_SOURCES
     main.cpp
     mainwindow.h
     mainwindow.cpp
+    core_manager.h
+    core_manager.cpp
     sidebarbutton.h
     sidebarbutton.cpp
     mdichild.h

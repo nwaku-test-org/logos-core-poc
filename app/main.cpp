@@ -8,6 +8,7 @@
 #include <QStringList>
 #include <QDebug>
 #include "../core/host/logos_core.h"
+#include "core_manager.h"
 
 // Forward declare the logos_core functions we need to call directly
 extern "C" {
@@ -48,6 +49,9 @@ int main(int argc, char *argv[])
 {
     // Create QApplication first - this will be used by both our UI and logos_core
     QApplication app(argc, argv);
+    
+    // Initialize CoreManager
+    CoreManager::instance().initialize(argc, argv);
     
     // commenting for now since this seems to create a new instance of QApplication
     // logos_core_init(argc, argv);
