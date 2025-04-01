@@ -6,6 +6,9 @@
 #include <QLabel>
 #include <QFont>
 #include <QFileInfo>
+#include <QVBoxLayout>
+#include <QSpacerItem>
+#include <QTimer>
 #include "mainwindow.h"
 
 ModulesView::ModulesView(QWidget *parent, MainWindow* mainWindow)

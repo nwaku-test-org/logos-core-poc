@@ -32,22 +32,22 @@ link_directories(${LOGOS_CORE_DIR}/build/lib)
 
 set(PROJECT_SOURCES
     main.cpp
-    mainwindow.h
-    mainwindow.cpp
     core_manager.h
     core_manager.cpp
-    sidebarbutton.h
-    sidebarbutton.cpp
-    mdichild.h
-    mdichild.cpp
-    mdiview.h
-    mdiview.cpp
-    modulesview.h
-    modulesview.cpp
-    dashboardview.h
-    dashboardview.cpp
-    coremoduleview.h
-    coremoduleview.cpp
+    ui/mainwindow.h
+    ui/mainwindow.cpp
+    ui/sidebarbutton.h
+    ui/sidebarbutton.cpp
+    ui/mdichild.h
+    ui/mdichild.cpp
+    ui/mdiview.h
+    ui/mdiview.cpp
+    ui/modulesview.h
+    ui/modulesview.cpp
+    ui/dashboardview.h
+    ui/dashboardview.cpp
+    ui/coremoduleview.h
+    ui/coremoduleview.cpp
     interfaces/IComponent.h
     resources.qrc
 )

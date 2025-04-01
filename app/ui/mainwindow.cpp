@@ -3,6 +3,9 @@
 #include <QScreen>
 #include <QSpacerItem>
 #include <QFont>
+#include <QMenuBar>
+#include <QMenu>
+#include <QStatusBar>
 #include "modulesview.h"
 #include "dashboardview.h"
 #include "coremoduleview.h"
