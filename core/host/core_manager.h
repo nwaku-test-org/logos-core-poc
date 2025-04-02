@@ -4,6 +4,7 @@
 #include <QObject>
 #include <QString>
 #include <QStringList>
+#include <QJsonArray>
 #include "../interface.h"
 
 class CoreManagerPlugin : public QObject, public PluginInterface {
@@ -25,6 +26,7 @@ public:
     Q_INVOKABLE void start();
     Q_INVOKABLE void cleanup();
     Q_INVOKABLE QStringList getLoadedPlugins();
+    Q_INVOKABLE QJsonArray getPluginMethods(const QString& pluginName);
     Q_INVOKABLE void helloWorld();
 
 private:

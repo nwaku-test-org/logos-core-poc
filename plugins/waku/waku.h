@@ -18,8 +18,8 @@ public:
     QString version() const override { return "0.1.0"; }
 
     // WakuInterface implementation
-    void initWaku(WakuInitCallback callback = nullptr) override;
-    void getVersion(WakuVersionCallback callback = nullptr) override;
+    Q_INVOKABLE void initWaku(WakuInitCallback callback = nullptr) override;
+    Q_INVOKABLE void getVersion(WakuVersionCallback callback = nullptr) override;
 
 private:
     void* wakuCtx;

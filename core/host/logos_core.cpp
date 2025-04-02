@@ -126,6 +126,31 @@ static void loadAndProcessPlugin(const QString &pluginPath)
     for (int i = 0; i < metaObject->methodCount(); ++i) {
         QMetaMethod method = metaObject->method(i);
         qDebug() << " -" << method.methodSignature();
+        
+        // List parameter types for more complex methods
+        if (method.parameterCount() > 0) {
+            QStringList paramDetails;
+            for (int p = 0; p < method.parameterCount(); ++p) {
+                QString paramType = method.parameterTypeName(p);
+                QString paramName = method.parameterNames().at(p);
+                
+                // Add extra info for known callback types
+                if (paramType == "WakuInitCallback") {
+                    paramDetails << QString("  - Parameter %1: %2 (std::function<void(bool success, const QString &message)>)").arg(p).arg(paramType);
+                } else if (paramType == "WakuVersionCallback") {
+                    paramDetails << QString("  - Parameter %1: %2 (std::function<void(const QString &version)>)").arg(p).arg(paramType);
+                } else if (!paramType.isEmpty()) {
+                    paramDetails << QString("  - Parameter %1: %2").arg(p).arg(paramType);
+                }
+            }
+            
+            if (!paramDetails.isEmpty()) {
+                qDebug() << "   Parameters:";
+                for (const QString &detail : paramDetails) {
+                    qDebug() << detail;
+                }
+            }
+        }
     }
 }
 

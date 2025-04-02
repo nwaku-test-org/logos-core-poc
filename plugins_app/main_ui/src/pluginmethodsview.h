@@ -4,6 +4,9 @@
 #include <QVBoxLayout>
 #include <QLabel>
 #include <QPushButton>
+#include <QTreeWidget>
+#include <QJsonArray>
+#include <QJsonObject>
 
 class PluginMethodsView : public QWidget
 {
@@ -18,13 +21,16 @@ signals:
 
 private slots:
     void onBackButtonClicked();
+    void onMethodItemDoubleClicked(QTreeWidgetItem* item, int column);
 
 private:
     void setupUi();
+    void loadPluginMethods();
+    void displayPluginMethods(const QJsonArray& methods);
 
     QString m_pluginName;
     QVBoxLayout* m_layout;
     QLabel* m_titleLabel;
-    QLabel* m_contentLabel;
+    QTreeWidget* m_methodsTree;
     QPushButton* m_backButton;
 }; 
