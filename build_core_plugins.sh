@@ -8,6 +8,10 @@ echo "Building Logos Core plugins..."
 # Get the script directory
 SCRIPT_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 
+# Build libwaku
+echo "Building libwaku..."
+"$SCRIPT_DIR/plugins/waku/build_libwaku.sh"
+
 # Navigate to plugins directory
 cd plugins
 

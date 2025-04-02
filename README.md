@@ -1,5 +1,11 @@
 # logos-core-poc
 
+Setup:
+
+```bash
+git submodule update --init --recursive
+```
+
 Build & run all:
 
 ```bash
