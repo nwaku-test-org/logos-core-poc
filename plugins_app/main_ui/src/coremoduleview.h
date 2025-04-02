@@ -5,6 +5,9 @@
 #include <QLabel>
 #include <QListWidget>
 #include <QTimer>
+#include <QStackedWidget>
+
+class PluginMethodsView;
 
 class CoreModuleView : public QWidget
 {
@@ -16,6 +19,8 @@ public:
 
 private slots:
     void updatePluginList();
+    void onViewMethodsClicked();
+    void onBackToPluginList();
 
 private:
     void setupUi();
@@ -26,4 +31,13 @@ private:
     QLabel* m_subtitleLabel;
     QListWidget* m_pluginList;
     QTimer* m_updateTimer;
+    
+    // Stacked widget to hold the plugin list and plugin methods views
+    QStackedWidget* m_stackedWidget;
+    
+    // The plugins list container widget
+    QWidget* m_pluginsListWidget;
+    
+    // The current plugin methods view (if any)
+    PluginMethodsView* m_currentMethodsView;
 }; 
