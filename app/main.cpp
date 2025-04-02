@@ -15,7 +15,7 @@ int main(int argc, char *argv[])
 {
     // Create QApplication first
     QApplication app(argc, argv);
-    
+
     // Initialize CoreManager
     CoreManager& core = CoreManager::instance();
     core.initialize(argc, argv);
@@ -28,7 +28,7 @@ int main(int argc, char *argv[])
     // Start the core
     core.start();
     std::cout << "Logos Core started successfully!" << std::endl;
-    
+
     // Print loaded plugins initially
     QStringList plugins = core.getLoadedPlugins();
     if (plugins.isEmpty()) {
@@ -41,26 +41,18 @@ int main(int argc, char *argv[])
         qInfo() << "Total plugins:" << plugins.size();
     }
 
-    // Get the core_manager plugin and call helloWorld
-    QObject* coreManagerPlugin = PluginRegistry::getPlugin<QObject>("core_manager");
-    if (coreManagerPlugin) {
-        QMetaObject::invokeMethod(coreManagerPlugin, "helloWorld", Qt::DirectConnection);
-    } else {
-        qWarning() << "Core manager plugin not found!";
-    }
-
     // Set application icon
     app.setWindowIcon(QIcon(":/icons/logos.png"));
-    
+
     // Create and show the main window
     Window mainWindow;
     mainWindow.show();
-    
+
     // Run the application
     int result = app.exec();
 
     // Cleanup
     core.cleanup();
-    
+
     return result;
 } 
