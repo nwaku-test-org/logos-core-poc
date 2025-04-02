@@ -116,49 +116,60 @@ void ModulesView::setupPluginButtons(QVBoxLayout* buttonLayout)
             pluginLabel->setMinimumWidth(100);
             
             // Load and unload buttons
-            QPushButton* loadButton = new QPushButton("Load", this);
-            loadButton->setStyleSheet(
-                "QPushButton {"
-                "   background-color: #4CAF50;"
-                "   color: white;"
-                "   border: none;"
-                "   padding: 8px 16px;"
-                "   border-radius: 4px;"
-                "}"
-                "QPushButton:hover {"
-                "   background-color: #45a049;"
-                "}"
-                "QPushButton:disabled {"
-                "   background-color: #cccccc;"
-                "}"
-            );
+            QPushButton* loadButton = nullptr;
+            QPushButton* unloadButton = nullptr;
             
-            QPushButton* unloadButton = new QPushButton("Unload", this);
-            unloadButton->setStyleSheet(
-                "QPushButton {"
-                "   background-color: #f44336;"
-                "   color: white;"
-                "   border: none;"
-                "   padding: 8px 16px;"
-                "   border-radius: 4px;"
-                "}"
-                "QPushButton:hover {"
-                "   background-color: #da190b;"
-                "}"
-                "QPushButton:disabled {"
-                "   background-color: #cccccc;"
-                "}"
-            );
-            
-            // Store buttons for later use
-            m_loadButtons[plugin] = loadButton;
-            m_unloadButtons[plugin] = unloadButton;
+            if (plugin != "main_ui") {
+                loadButton = new QPushButton("Load", this);
+                loadButton->setStyleSheet(
+                    "QPushButton {"
+                    "   background-color: #4CAF50;"
+                    "   color: white;"
+                    "   border: none;"
+                    "   padding: 8px 16px;"
+                    "   border-radius: 4px;"
+                    "}"
+                    "QPushButton:hover {"
+                    "   background-color: #45a049;"
+                    "}"
+                    "QPushButton:disabled {"
+                    "   background-color: #cccccc;"
+                    "}"
+                );
+                
+                unloadButton = new QPushButton("Unload", this);
+                unloadButton->setStyleSheet(
+                    "QPushButton {"
+                    "   background-color: #f44336;"
+                    "   color: white;"
+                    "   border: none;"
+                    "   padding: 8px 16px;"
+                    "   border-radius: 4px;"
+                    "}"
+                    "QPushButton:hover {"
+                    "   background-color: #da190b;"
+                    "}"
+                    "QPushButton:disabled {"
+                    "   background-color: #cccccc;"
+                    "}"
+                );
+                
+                // Store buttons for later use
+                m_loadButtons[plugin] = loadButton;
+                m_unloadButtons[plugin] = unloadButton;
+                
+                // Initially hide the unload button
+                unloadButton->hide();
+            }
             
             // Add widgets to header layout
             headerLayout->addWidget(pluginLabel);
             headerLayout->addStretch();
-            headerLayout->addWidget(loadButton);
-            headerLayout->addWidget(unloadButton);
+
+            if (plugin != "main_ui") {
+                headerLayout->addWidget(loadButton);
+                headerLayout->addWidget(unloadButton);
+            }
             
             // Add header layout to plugin layout
             pluginLayout->addLayout(headerLayout);
@@ -199,15 +210,17 @@ void ModulesView::setupPluginButtons(QVBoxLayout* buttonLayout)
             buttonLayout->addWidget(pluginFrame);
             
             // Connect buttons to slots using lambda functions to pass the plugin name
-            connect(loadButton, &QPushButton::clicked, this, [this, plugin]() {
-                onLoadComponent(plugin);
-            });
-            connect(unloadButton, &QPushButton::clicked, this, [this, plugin]() {
-                onUnloadComponent(plugin);
-            });
-            
-            // Set initial button states
-            updateButtonStates(plugin, true);
+            if (plugin != "main_ui") {
+                connect(loadButton, &QPushButton::clicked, this, [this, plugin]() {
+                    onLoadComponent(plugin);
+                });
+                connect(unloadButton, &QPushButton::clicked, this, [this, plugin]() {
+                    onUnloadComponent(plugin);
+                });
+                
+                // Set initial button states
+                updateButtonStates(plugin, true);
+            }
         }
         
         qDebug() << "Plugin buttons setup complete.";
@@ -453,9 +466,17 @@ void ModulesView::updateButtonStates(const QString& name, bool isEnabled)
 {
     // Update button states
     if (m_loadButtons.contains(name)) {
-        m_loadButtons[name]->setEnabled(isEnabled);
+        if (isEnabled) {
+            m_loadButtons[name]->show();
+        } else {
+            m_loadButtons[name]->hide();
+        }
     }
     if (m_unloadButtons.contains(name)) {
-        m_unloadButtons[name]->setEnabled(!isEnabled);
+        if (isEnabled) {
+            m_unloadButtons[name]->hide();
+        } else {
+            m_unloadButtons[name]->show();
+        }
     }
 } 
