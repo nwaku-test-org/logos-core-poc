@@ -1,0 +1,17 @@
+{
+  "name": "chat",
+  "version": "1.0.0",
+  "description": "A chat plugin for Logos",
+  "author": "Logos Core Team",
+  "type": "core",
+  "main": "chat_plugin",
+  "dependencies": [],
+  "build": {
+    "type": "cmake",
+    "files": [
+      "chat_plugin.cpp",
+      "chat_plugin.h"
+    ]
+  },
+  "capabilities": []
+} 

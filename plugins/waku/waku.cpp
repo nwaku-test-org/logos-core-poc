@@ -344,6 +344,7 @@ namespace {
 
     // Static callback for waku_connect
     void connect_callback(int callerRet, const char* msg, size_t len, void* userData) {
+        qDebug() << "Connect callback called";
         bool success = (callerRet == RET_OK);
         QString message;
         
@@ -387,6 +388,64 @@ namespace {
         // Note: We don't delete the data here since this is a persistent callback
         // that will be called multiple times throughout the lifetime of the waku node
     }
+
+    // Structure to hold store query data
+    struct StoreQueryData {
+        Waku* waku;
+        WakuStoreQueryCallback callback;
+    };
+
+    // Static callback for waku_store_query
+    void store_query_callback(int callerRet, const char* msg, size_t len, void* userData) {
+        bool success = (callerRet == RET_OK);
+        QString message;
+        
+        if (success && msg != nullptr) {
+            message = QString::fromUtf8(msg, len);
+            qDebug() << "Store query successful, response:" << message;
+        } else {
+            message = msg ? QString::fromUtf8(msg, len) : "Unknown error";
+            qDebug() << "Store query failed:" << message;
+        }
+        
+        // Call user callback if provided
+        if (userData) {
+            auto* data = static_cast<StoreQueryData*>(userData);
+            if (data->callback) {
+                data->callback(success, message);
+            }
+            delete data;
+        }
+    }
+
+    // Structure to hold destroy data
+    struct DestroyData {
+        Waku* waku;
+        WakuDestroyCallback callback;
+    };
+
+    // Static callback for waku_destroy
+    void destroy_callback(int callerRet, const char* msg, size_t len, void* userData) {
+        bool success = (callerRet == RET_OK);
+        QString message;
+        
+        if (success) {
+            message = "Waku destroyed successfully";
+            qDebug() << message;
+        } else {
+            message = msg ? QString::fromUtf8(msg, len) : "Unknown error";
+            qDebug() << "Waku destruction failed:" << message;
+        }
+        
+        // Call user callback if provided
+        if (userData) {
+            auto* data = static_cast<DestroyData*>(userData);
+            if (data->callback) {
+                data->callback(success, message);
+            }
+            delete data;
+        }
+    }
 }
 
 Waku::Waku() : wakuCtx(nullptr) {
@@ -396,11 +455,12 @@ Waku::Waku() : wakuCtx(nullptr) {
 Waku::~Waku() {
     qDebug() << "Waku Plugin destroyed!";
     if (wakuCtx) {
-        waku_destroy(wakuCtx, nullptr, nullptr);
+        // Use our new destroyWaku method with a null callback
+        destroyWaku(nullptr);
     }
 }
 
-void Waku::initWaku(WakuInitCallback callback) {
+void Waku::initWaku(const QString &cfg, WakuInitCallback callback) {
     qDebug() << "Initializing Waku...";
     // Clean up existing instance if any
     if (wakuCtx) {
@@ -411,8 +471,9 @@ void Waku::initWaku(WakuInitCallback callback) {
     // Save the callback
     InitData* userData = new InitData{this, callback};
 
-    // Initialize Waku - passing the callback data as userData
-    wakuCtx = waku_new("{}", init_callback, userData);
+    // Initialize Waku - passing the callback data as userData and configuration
+    QByteArray cfgUtf8 = cfg.toUtf8();
+    wakuCtx = waku_new(cfgUtf8.constData(), init_callback, userData);
     if (!wakuCtx) {
         qDebug() << "Failed to initialize Waku";
         // Call callback for failure case
@@ -813,6 +874,7 @@ void Waku::connectPeer(const QString &peerMultiAddr, unsigned int timeoutMs,
     // Convert QString to UTF-8 C string
     QByteArray peerMultiAddrUtf8 = peerMultiAddr.toUtf8();
 
+    qDebug() << "Connecting to peer..." << peerMultiAddrUtf8.constData();
     // Call the waku_connect function
     int ret = waku_connect(
         wakuCtx,
@@ -829,6 +891,80 @@ void Waku::connectPeer(const QString &peerMultiAddr, unsigned int timeoutMs,
             callback(false, errorMsg);
         }
         delete data;
+    }
+}
+
+void Waku::storeQuery(const QString &jsonQuery, const QString &peerAddr, 
+                     unsigned int timeoutMs, WakuStoreQueryCallback callback) {
+    qDebug() << "Executing store query...";
+    if (!wakuCtx) {
+        QString errorMsg = "Waku not initialized";
+        qDebug() << errorMsg;
+        if (callback) {
+            callback(false, errorMsg);
+        }
+        return;
+    }
+
+    // Create store query data for the callback
+    auto* data = new StoreQueryData{this, callback};
+
+    // Convert QString to UTF-8 C string
+    QByteArray jsonQueryUtf8 = jsonQuery.toUtf8();
+    QByteArray peerAddrUtf8 = peerAddr.toUtf8();
+
+    qDebug() << "Querying store node..." << peerAddrUtf8.constData();
+    // Call the waku_store_query function
+    int ret = waku_store_query(
+        wakuCtx,
+        jsonQueryUtf8.constData(),
+        peerAddrUtf8.constData(),
+        timeoutMs,
+        store_query_callback,
+        data
+    );
+
+    if (ret != RET_OK) {
+        QString errorMsg = "Failed to execute store query";
+        qDebug() << errorMsg;
+        if (callback) {
+            callback(false, errorMsg);
+        }
+        delete data;
+    }
+}
+
+void Waku::destroyWaku(WakuDestroyCallback callback) {
+    qDebug() << "Destroying Waku...";
+    if (!wakuCtx) {
+        QString errorMsg = "Waku not initialized";
+        qDebug() << errorMsg;
+        if (callback) {
+            callback(false, errorMsg);
+        }
+        return;
+    }
+
+    // Create destroy data for the callback
+    auto* data = new DestroyData{this, callback};
+
+    // Call the waku_destroy function
+    int ret = waku_destroy(
+        wakuCtx,
+        destroy_callback,
+        data
+    );
+
+    if (ret != RET_OK) {
+        QString errorMsg = "Failed to destroy Waku";
+        qDebug() << errorMsg;
+        if (callback) {
+            callback(false, errorMsg);
+        }
+        delete data;
+    } else {
+        // Set wakuCtx to null since we're destroying it
+        wakuCtx = nullptr;
     }
 }
 

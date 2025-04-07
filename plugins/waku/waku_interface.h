@@ -15,6 +15,8 @@ using WakuProtectedShardCallback = std::function<void(bool success, const QStrin
 using WakuSubscribeCallback = std::function<void(bool success, const QString &message)>;
 using WakuFilterSubscribeCallback = std::function<void(bool success, const QString &message)>;
 using WakuConnectCallback = std::function<void(bool success, const QString &message)>;
+using WakuStoreQueryCallback = std::function<void(bool success, const QString &message)>;
+using WakuDestroyCallback = std::function<void(bool success, const QString &message)>;
 using WakuEventCallback = std::function<void(const QString &event)>;
 
 class WakuInterface : public PluginInterface {
@@ -22,7 +24,7 @@ public:
     virtual ~WakuInterface() {}
 
     // Plugin methods
-    virtual void initWaku(WakuInitCallback callback = nullptr) = 0;
+    virtual void initWaku(const QString &cfg = "{}", WakuInitCallback callback = nullptr) = 0;
     virtual void getVersion(WakuVersionCallback callback = nullptr) = 0;
     virtual void startWaku(WakuStartCallback callback = nullptr) = 0;
     virtual void stopWaku(WakuStopCallback callback = nullptr) = 0;
@@ -44,6 +46,9 @@ public:
                                WakuFilterSubscribeCallback callback = nullptr) = 0;
     virtual void connectPeer(const QString &peerMultiAddr, unsigned int timeoutMs, 
                             WakuConnectCallback callback = nullptr) = 0;
+    virtual void storeQuery(const QString &jsonQuery, const QString &peerAddr, 
+                           unsigned int timeoutMs, WakuStoreQueryCallback callback = nullptr) = 0;
+    virtual void destroyWaku(WakuDestroyCallback callback = nullptr) = 0;
     virtual void setEventCallback(WakuEventCallback callback) = 0;
 };
 
