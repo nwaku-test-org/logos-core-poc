@@ -20,9 +20,40 @@ public:
     // WakuInterface implementation
     Q_INVOKABLE void initWaku(WakuInitCallback callback = nullptr) override;
     Q_INVOKABLE void getVersion(WakuVersionCallback callback = nullptr) override;
+    Q_INVOKABLE void startWaku(WakuStartCallback callback = nullptr) override;
+    Q_INVOKABLE void stopWaku(WakuStopCallback callback = nullptr) override;
+    Q_INVOKABLE void createContentTopic(const QString &appName, unsigned int appVersion, 
+                                       const QString &contentTopicName, const QString &encoding,
+                                       WakuContentTopicCallback callback = nullptr) override;
+    Q_INVOKABLE void createPubSubTopic(const QString &topicName, 
+                                      WakuPubSubTopicCallback callback = nullptr) override;
+    Q_INVOKABLE void getDefaultPubSubTopic(WakuPubSubTopicCallback callback = nullptr) override;
+    Q_INVOKABLE void relayPublish(const QString &pubSubTopic, const QString &jsonWakuMessage,
+                                 unsigned int timeoutMs, WakuPublishCallback callback = nullptr) override;
+    Q_INVOKABLE void relayAddProtectedShard(int clusterId, int shardId, const QString &publicKey,
+                                          WakuProtectedShardCallback callback = nullptr) override;
+    Q_INVOKABLE void relaySubscribe(const QString &pubSubTopic, 
+                                  WakuSubscribeCallback callback = nullptr) override;
+    Q_INVOKABLE void relayUnsubscribe(const QString &pubSubTopic, 
+                                     WakuSubscribeCallback callback = nullptr) override;
+    Q_INVOKABLE void filterSubscribe(const QString &pubSubTopic, const QString &contentTopics, 
+                                   WakuFilterSubscribeCallback callback = nullptr) override;
+    Q_INVOKABLE void connectPeer(const QString &peerMultiAddr, unsigned int timeoutMs, 
+                               WakuConnectCallback callback = nullptr) override;
+    Q_INVOKABLE void setEventCallback(WakuEventCallback callback) override;
 
 private:
     void* wakuCtx;
     WakuInitCallback initCallback;
     WakuVersionCallback versionCallback;
+    WakuStartCallback startCallback;
+    WakuStopCallback stopCallback;
+    WakuContentTopicCallback contentTopicCallback;
+    WakuPubSubTopicCallback pubSubTopicCallback;
+    WakuPublishCallback publishCallback;
+    WakuProtectedShardCallback protectedShardCallback;
+    WakuSubscribeCallback subscribeCallback;
+    WakuFilterSubscribeCallback filterSubscribeCallback;
+    WakuConnectCallback connectCallback;
+    WakuEventCallback eventCallback;
 }; 
