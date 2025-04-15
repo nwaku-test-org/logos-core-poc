@@ -21,6 +21,8 @@ private slots:
     void updatePluginList();
     void onViewMethodsClicked();
     void onBackToPluginList();
+    void onLoadPluginClicked();
+    void onUnloadPluginClicked();
 
 private:
     void setupUi();

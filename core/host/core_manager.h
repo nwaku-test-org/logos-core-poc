@@ -26,8 +26,11 @@ public:
     Q_INVOKABLE void start();
     Q_INVOKABLE void cleanup();
     Q_INVOKABLE QStringList getLoadedPlugins();
+    Q_INVOKABLE QJsonArray getKnownPlugins();
     Q_INVOKABLE QJsonArray getPluginMethods(const QString& pluginName);
     Q_INVOKABLE void helloWorld();
+    Q_INVOKABLE bool loadPlugin(const QString& pluginName);
+    Q_INVOKABLE bool unloadPlugin(const QString& pluginName);
 
 private:
     QString m_pluginsDirectory;

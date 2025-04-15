@@ -9,6 +9,8 @@
 #include <QStackedWidget>
 #include "core/plugin_registry.h"
 #include "pluginmethodsview.h"
+#include <QJsonArray>
+#include <QJsonObject>
 
 CoreModuleView::CoreModuleView(QWidget *parent)
     : QWidget(parent)
@@ -62,7 +64,7 @@ void CoreModuleView::setupUi()
     m_titleLabel->setStyleSheet("color: #ffffff;");
 
     // Add a subtitle
-    m_subtitleLabel = new QLabel("Currently loaded plugins in the system", m_pluginsListWidget);
+    m_subtitleLabel = new QLabel("All available plugins in the system", m_pluginsListWidget);
     m_subtitleLabel->setStyleSheet("color: #a0a0a0; font-size: 14px; margin-bottom: 20px;");
 
     pluginsLayout->addWidget(m_titleLabel);
@@ -150,57 +152,163 @@ void CoreModuleView::updatePluginList()
         return;
     }
 
-    // Get the list of loaded plugins using invokeMethod
-    QStringList plugins;
-    QMetaObject::invokeMethod(coreManagerPlugin, "getLoadedPlugins", 
+    // Get the list of known plugins using invokeMethod - now returns QJsonArray with status
+    QJsonArray pluginsArray;
+    QMetaObject::invokeMethod(coreManagerPlugin, "getKnownPlugins", 
                             Qt::DirectConnection,
-                            Q_RETURN_ARG(QStringList, plugins));
-    
+                            Q_RETURN_ARG(QJsonArray, pluginsArray));
+
     // Clear the current list
     m_pluginList->clear();
-    
-    if (plugins.isEmpty()) {
-        qDebug() << "No plugins loaded";
-        QListWidgetItem* item = new QListWidgetItem("No plugins loaded");
+
+    if (pluginsArray.isEmpty()) {
+        qDebug() << "No plugins known";
+        QListWidgetItem* item = new QListWidgetItem("No plugins available");
         item->setIcon(QIcon(":/icons/plugin.png"));
         item->setTextAlignment(Qt::AlignLeft | Qt::AlignVCenter);
         m_pluginList->addItem(item);
         return;
     } else {
-        qDebug() << "Plugins loaded:";
-        foreach (const QString &pluginName, plugins) {
-            qDebug() << "  " << pluginName;
+        qDebug() << "Known plugins:";
+        for (const QJsonValue &val : pluginsArray) {
+            QJsonObject pluginObj = val.toObject();
+            QString pluginName = pluginObj["name"].toString();
+            bool isLoaded = pluginObj["loaded"].toBool();
+            qDebug() << "  " << pluginName << (isLoaded ? " (loaded)" : " (not loaded)");
         }
     }
-    
+
     // Add each plugin to the list
-    foreach (const QString &pluginName, plugins) {
+    for (const QJsonValue &val : pluginsArray) {
+        QJsonObject pluginObj = val.toObject();
+        QString pluginName = pluginObj["name"].toString();
+        bool isLoaded = pluginObj["loaded"].toBool();
+
         // Create a widget to hold both the plugin name and the button
         QWidget* itemWidget = new QWidget();
         QHBoxLayout* itemLayout = new QHBoxLayout(itemWidget);
         itemLayout->setContentsMargins(10, 10, 10, 10);
-        
+
         // Add the plugin name
         QLabel* nameLabel = new QLabel(pluginName);
         nameLabel->setStyleSheet("color: #e0e0e0; font-size: 16px;");
         itemLayout->addWidget(nameLabel);
-        
+
+        // Add status indicator
+        QLabel* statusLabel = new QLabel(isLoaded ? "(Loaded)" : "(Not Loaded)");
+        statusLabel->setStyleSheet(isLoaded ? 
+                                  "color: #4CAF50; font-size: 14px;" : 
+                                  "color: #F44336; font-size: 14px;");
+        itemLayout->addWidget(statusLabel);
+
         // Add spacer to push the button to the right
         itemLayout->addStretch();
-        
-        // Add "View Methods" button
-        QPushButton* viewMethodsButton = new QPushButton("View Methods");
-        viewMethodsButton->setProperty("pluginName", pluginName);
-        viewMethodsButton->setMinimumHeight(30); // Set minimum height for button
-        connect(viewMethodsButton, &QPushButton::clicked, this, &CoreModuleView::onViewMethodsClicked);
-        itemLayout->addWidget(viewMethodsButton);
-        
+
+        if (isLoaded) {
+            // Plugin is loaded, show Unload and View Methods buttons
+            QPushButton* unloadButton = new QPushButton("Unload Plugin");
+            unloadButton->setProperty("pluginName", pluginName);
+            unloadButton->setMinimumHeight(30); // Set minimum height for button
+            unloadButton->setStyleSheet("background-color: #F44336;"); // Red button for unload
+            connect(unloadButton, &QPushButton::clicked, this, &CoreModuleView::onUnloadPluginClicked);
+            itemLayout->addWidget(unloadButton);
+            
+            QPushButton* viewMethodsButton = new QPushButton("View Methods");
+            viewMethodsButton->setProperty("pluginName", pluginName);
+            viewMethodsButton->setMinimumHeight(30); // Set minimum height for button
+            connect(viewMethodsButton, &QPushButton::clicked, this, &CoreModuleView::onViewMethodsClicked);
+            itemLayout->addWidget(viewMethodsButton);
+        } else {
+            // Plugin is not loaded, show Load button
+            QPushButton* loadButton = new QPushButton("Load Plugin");
+            loadButton->setProperty("pluginName", pluginName);
+            loadButton->setMinimumHeight(30); // Set minimum height for button
+            connect(loadButton, &QPushButton::clicked, this, &CoreModuleView::onLoadPluginClicked);
+            itemLayout->addWidget(loadButton);
+        }
+
         // Add the widget to the list
         QListWidgetItem* item = new QListWidgetItem();
         itemWidget->setMinimumHeight(50); // Set minimum height for the item
         item->setSizeHint(QSize(itemWidget->sizeHint().width(), 50)); // Force height to be 50 pixels
         m_pluginList->addItem(item);
         m_pluginList->setItemWidget(item, itemWidget);
+    }
+}
+
+void CoreModuleView::onLoadPluginClicked()
+{
+    QPushButton* button = qobject_cast<QPushButton*>(sender());
+    if (!button) {
+        return;
+    }
+
+    QString pluginName = button->property("pluginName").toString();
+    if (pluginName.isEmpty()) {
+        qDebug() << "Plugin name not found in button properties";
+        return;
+    }
+
+    qDebug() << "Loading plugin:" << pluginName;
+
+    // Get the core_manager plugin
+    QObject* coreManagerPlugin = PluginRegistry::getPlugin<QObject>("core_manager");
+    if (!coreManagerPlugin) {
+        qWarning() << "Core manager plugin not found!";
+        return;
+    }
+
+    // Call the loadPlugin method
+    bool success = false;
+    QMetaObject::invokeMethod(coreManagerPlugin, "loadPlugin", 
+                            Qt::DirectConnection,
+                            Q_RETURN_ARG(bool, success),
+                            Q_ARG(QString, pluginName));
+
+    if (success) {
+        qDebug() << "Successfully loaded plugin:" << pluginName;
+        // Update the UI to reflect the loaded plugin
+        updatePluginList();
+    } else {
+        qDebug() << "Failed to load plugin:" << pluginName;
+    }
+}
+
+void CoreModuleView::onUnloadPluginClicked()
+{
+    QPushButton* button = qobject_cast<QPushButton*>(sender());
+    if (!button) {
+        return;
+    }
+    
+    QString pluginName = button->property("pluginName").toString();
+    if (pluginName.isEmpty()) {
+        qDebug() << "Plugin name not found in button properties";
+        return;
+    }
+    
+    qDebug() << "Unloading plugin:" << pluginName;
+    
+    // Get the core_manager plugin
+    QObject* coreManagerPlugin = PluginRegistry::getPlugin<QObject>("core_manager");
+    if (!coreManagerPlugin) {
+        qWarning() << "Core manager plugin not found!";
+        return;
+    }
+    
+    // Call the unloadPlugin method
+    bool success = false;
+    QMetaObject::invokeMethod(coreManagerPlugin, "unloadPlugin", 
+                            Qt::DirectConnection,
+                            Q_RETURN_ARG(bool, success),
+                            Q_ARG(QString, pluginName));
+    
+    if (success) {
+        qDebug() << "Successfully unloaded plugin:" << pluginName;
+        // Update the UI to reflect the unloaded plugin
+        updatePluginList();
+    } else {
+        qDebug() << "Failed to unload plugin:" << pluginName;
     }
 }
 

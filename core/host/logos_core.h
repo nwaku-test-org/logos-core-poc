@@ -31,6 +31,18 @@ LOGOS_CORE_EXPORT void logos_core_cleanup();
 // Returns a null-terminated array of plugin names that must be freed by the caller
 LOGOS_CORE_EXPORT char** logos_core_get_loaded_plugins();
 
+// Get the list of known plugins
+// Returns a null-terminated array of plugin names that must be freed by the caller
+LOGOS_CORE_EXPORT char** logos_core_get_known_plugins();
+
+// Load a specific plugin by name
+// Returns 1 if successful, 0 if failed
+LOGOS_CORE_EXPORT int logos_core_load_plugin(const char* plugin_name);
+
+// Unload a specific plugin by name
+// Returns 1 if successful, 0 if failed
+LOGOS_CORE_EXPORT int logos_core_unload_plugin(const char* plugin_name);
+
 #ifdef __cplusplus
 }
 #endif

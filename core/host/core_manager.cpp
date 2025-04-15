@@ -64,6 +64,51 @@ QStringList CoreManagerPlugin::getLoadedPlugins() {
     return pluginList;
 }
 
+QJsonArray CoreManagerPlugin::getKnownPlugins() {
+    qDebug() << "CoreManager: Getting known plugins with status";
+    QJsonArray pluginsArray;
+    
+    // Get all known plugins
+    char** plugins = logos_core_get_known_plugins();
+    if (!plugins) {
+        return pluginsArray;
+    }
+    
+    // Get all loaded plugins for status checking
+    QStringList loadedPlugins = getLoadedPlugins();
+    
+    // Populate the JSON array with plugin information
+    for (char** p = plugins; *p != nullptr; ++p) {
+        QString pluginName = QString::fromUtf8(*p);
+        
+        // Create a JSON object for each plugin
+        QJsonObject pluginObj;
+        pluginObj["name"] = pluginName;
+        pluginObj["loaded"] = loadedPlugins.contains(pluginName);
+        
+        // Add to array
+        pluginsArray.append(pluginObj);
+        
+        // Free memory
+        delete[] *p;
+    }
+    delete[] plugins;
+    
+    return pluginsArray;
+}
+
+bool CoreManagerPlugin::loadPlugin(const QString& pluginName) {
+    qDebug() << "CoreManager: Loading plugin:" << pluginName;
+    int result = logos_core_load_plugin(pluginName.toUtf8().constData());
+    return result == 1;
+}
+
+bool CoreManagerPlugin::unloadPlugin(const QString& pluginName) {
+    qDebug() << "CoreManager: Unloading plugin:" << pluginName;
+    int result = logos_core_unload_plugin(pluginName.toUtf8().constData());
+    return result == 1;
+}
+
 QJsonArray CoreManagerPlugin::getPluginMethods(const QString& pluginName) {
     QJsonArray methodsArray;
     

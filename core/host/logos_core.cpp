@@ -10,6 +10,7 @@
 #include <QJsonObject>
 #include <QJsonDocument>
 #include <QJsonArray>
+#include <QHash>
 #include "../interface.h"
 #include "../plugin_registry.h"
 #include "core_manager.h"
@@ -26,84 +27,113 @@ static QString g_plugins_dir = "";
 // Global list to store loaded plugin names
 static QStringList g_loaded_plugins;
 
-// Helper function to load and process a plugin
-static void loadAndProcessPlugin(const QString &pluginPath)
+// Global hash to store known plugin names and paths
+static QHash<QString, QString> g_known_plugins;
+
+// Helper function to process a plugin and extract its metadata
+static QString processPlugin(const QString &pluginPath)
 {
     qDebug() << "\n------------------------------------------";
-    qDebug() << "Loading plugin from:" << pluginPath;
+    qDebug() << "Processing plugin from:" << pluginPath;
 
-    // Load the plugin
+    // Load the plugin metadata without instantiating the plugin
     QPluginLoader loader(pluginPath);
 
-    // Read the metadata before loading the plugin
+    // Read the metadata
     QJsonObject metadata = loader.metaData();
     if (metadata.isEmpty()) {
         qWarning() << "No metadata found for plugin:" << pluginPath;
-        return;
+        return QString();
     }
 
     // Read our custom metadata from the metadata.json file
     QJsonObject customMetadata = metadata.value("MetaData").toObject();
-    if (!customMetadata.isEmpty()) {
-        qDebug() << "Plugin Metadata:";
-        qDebug() << " - Name:" << customMetadata.value("name").toString();
-        qDebug() << " - Version:" << customMetadata.value("version").toString();
-        qDebug() << " - Description:" << customMetadata.value("description").toString();
-        qDebug() << " - Author:" << customMetadata.value("author").toString();
-        qDebug() << " - Type:" << customMetadata.value("type").toString();
-        
-        // Log capabilities
-        QJsonArray capabilities = customMetadata.value("capabilities").toArray();
-        if (!capabilities.isEmpty()) {
-            qDebug() << " - Capabilities:";
-            for (const QJsonValue &cap : capabilities) {
-                qDebug() << "   *" << cap.toString();
-            }
-        }
+    if (customMetadata.isEmpty()) {
+        qWarning() << "No custom metadata found for plugin:" << pluginPath;
+        return QString();
+    }
 
-        // Check dependencies
-        QJsonArray dependencies = customMetadata.value("dependencies").toArray();
-        if (!dependencies.isEmpty()) {
-            qDebug() << " - Dependencies:";
-            for (const QJsonValue &dep : dependencies) {
-                QString dependency = dep.toString();
-                qDebug() << "   *" << dependency;
-                if (!g_loaded_plugins.contains(dependency)) {
-                    qWarning() << "Required dependency not loaded:" << dependency;
-                }
+    QString pluginName = customMetadata.value("name").toString();
+    if (pluginName.isEmpty()) {
+        qWarning() << "Plugin name not specified in metadata for:" << pluginPath;
+        return QString();
+    }
+
+    qDebug() << "Plugin Metadata:";
+    qDebug() << " - Name:" << pluginName;
+    qDebug() << " - Version:" << customMetadata.value("version").toString();
+    qDebug() << " - Description:" << customMetadata.value("description").toString();
+    qDebug() << " - Author:" << customMetadata.value("author").toString();
+    qDebug() << " - Type:" << customMetadata.value("type").toString();
+    
+    // Log capabilities
+    QJsonArray capabilities = customMetadata.value("capabilities").toArray();
+    if (!capabilities.isEmpty()) {
+        qDebug() << " - Capabilities:";
+        for (const QJsonValue &cap : capabilities) {
+            qDebug() << "   *" << cap.toString();
+        }
+    }
+
+    // Check dependencies
+    QJsonArray dependencies = customMetadata.value("dependencies").toArray();
+    if (!dependencies.isEmpty()) {
+        qDebug() << " - Dependencies:";
+        for (const QJsonValue &dep : dependencies) {
+            QString dependency = dep.toString();
+            qDebug() << "   *" << dependency;
+            if (!g_loaded_plugins.contains(dependency)) {
+                qWarning() << "Required dependency not loaded:" << dependency;
             }
         }
     }
 
+    // Store the plugin in the known plugins hash
+    g_known_plugins.insert(pluginName, pluginPath);
+    qDebug() << "Added to known plugins: " << pluginName << " -> " << pluginPath;
+    
+    return pluginName;
+}
+
+// Helper function to load a plugin by name
+static bool loadPlugin(const QString &pluginName)
+{
+    if (!g_known_plugins.contains(pluginName)) {
+        qWarning() << "Cannot load unknown plugin:" << pluginName;
+        return false;
+    }
+
+    QString pluginPath = g_known_plugins.value(pluginName);
+    qDebug() << "Loading plugin:" << pluginName << "from path:" << pluginPath;
+
+    // Load the plugin
+    QPluginLoader loader(pluginPath);
     QObject *plugin = loader.instance();
 
     if (!plugin) {
         qWarning() << "Failed to load plugin:" << loader.errorString();
-        return;
+        return false;
     }
 
     qDebug() << "Plugin loaded successfully.";
 
     // Cast to the base PluginInterface
     PluginInterface *basePlugin = qobject_cast<PluginInterface *>(plugin);
+    qDebug() << "Plugin casted to PluginInterface";
     if (!basePlugin) {
         qWarning() << "Plugin does not implement the PluginInterface";
-        return;
+        return false;
     }
 
     // Verify that the plugin name matches the metadata
-    if (!customMetadata.isEmpty()) {
-        QString metadataName = customMetadata.value("name").toString();
-        QString pluginName = basePlugin->name();
-        if (metadataName != pluginName) {
-            qWarning() << "Plugin name mismatch! Metadata:" << metadataName << "Plugin:" << pluginName;
-        }
+    if (pluginName != basePlugin->name()) {
+        qWarning() << "Plugin name mismatch! Expected:" << pluginName << "Actual:" << basePlugin->name();
     }
 
     qDebug() << "Plugin name:" << basePlugin->name();
     qDebug() << "Plugin version:" << basePlugin->version();
 
-    // Add the plugin name to our global list
+    // Add the plugin name to our loaded plugins list
     g_loaded_plugins.append(basePlugin->name());
 
     // Register the plugin using the PluginRegistry namespace function
@@ -151,6 +181,22 @@ static void loadAndProcessPlugin(const QString &pluginPath)
                 }
             }
         }
+    }
+    
+    return true;
+}
+
+// Helper function to load and process a plugin
+static void loadAndProcessPlugin(const QString &pluginPath)
+{
+    // First process the plugin to get its metadata
+    QString pluginName = processPlugin(pluginPath);
+    
+    // If we found the name, load the plugin
+    if (!pluginName.isEmpty()) {
+        loadPlugin(pluginName);
+    } else {
+        qWarning() << "Failed to process plugin:" << pluginPath;
     }
 }
 
@@ -262,7 +308,8 @@ void logos_core_start()
         
         // Load and process each plugin
         for (const QString &pluginPath : pluginPaths) {
-            loadAndProcessPlugin(pluginPath);
+            // loadAndProcessPlugin(pluginPath);
+            processPlugin(pluginPath);
         }
     }
 }
@@ -307,4 +354,97 @@ char** logos_core_get_loaded_plugins()
     result[count] = nullptr;
     
     return result;
+}
+
+// Implementation of the function to get known plugins
+char** logos_core_get_known_plugins()
+{
+    // Get the keys from the hash (plugin names)
+    QStringList knownPlugins = g_known_plugins.keys();
+    int count = knownPlugins.size();
+    
+    if (count == 0) {
+        // Return an array with just a NULL terminator
+        char** result = new char*[1];
+        result[0] = nullptr;
+        return result;
+    }
+    
+    // Allocate memory for the array of strings
+    char** result = new char*[count + 1];  // +1 for null terminator
+    
+    // Copy each plugin name
+    for (int i = 0; i < count; ++i) {
+        QByteArray utf8Data = knownPlugins[i].toUtf8();
+        result[i] = new char[utf8Data.size() + 1];
+        strcpy(result[i], utf8Data.constData());
+    }
+    
+    // Null-terminate the array
+    result[count] = nullptr;
+    
+    return result;
+}
+
+// Implementation of the function to load a plugin by name
+int logos_core_load_plugin(const char* plugin_name)
+{
+    if (!plugin_name) {
+        qWarning() << "Cannot load plugin: name is null";
+        return 0;
+    }
+    
+    QString name = QString::fromUtf8(plugin_name);
+    qDebug() << "Attempting to load plugin by name:" << name;
+    
+    // Check if plugin exists in known plugins
+    if (!g_known_plugins.contains(name)) {
+        qWarning() << "Plugin not found among known plugins:" << name;
+        return 0;
+    }
+    
+    // Use our internal loadPlugin function
+    bool success = loadPlugin(name);
+    return success ? 1 : 0;
+}
+
+// Implementation of the function to unload a plugin by name
+int logos_core_unload_plugin(const char* plugin_name)
+{
+    if (!plugin_name) {
+        qWarning() << "Cannot unload plugin: name is null";
+        return 0;
+    }
+
+    QString name = QString::fromUtf8(plugin_name);
+    qDebug() << "Attempting to unload plugin by name:" << name;
+
+    // Check if plugin is loaded
+    if (!g_loaded_plugins.contains(name)) {
+        qWarning() << "Plugin not loaded, cannot unload:" << name;
+        qDebug() << "Loaded plugins:" << g_loaded_plugins;
+        return 0;
+    }
+
+    // Converting to registry key format 
+    QString registryKey = name.toLower().replace(" ", "_");
+    qDebug() << "Looking for plugin in registry with key:" << registryKey;
+
+    // Get the plugin object from the registry
+    QObject* plugin = nullptr;
+
+    // First try to get it directly from registry
+    plugin = PluginRegistry::getPlugin<QObject>(registryKey);
+
+    if (plugin) {
+        bool removed = PluginRegistry::unregisterPlugin(registryKey);
+
+        g_loaded_plugins.removeAll(name);
+
+        delete plugin;
+        qDebug() << "Successfully deleted plugin object";
+    }
+
+    qDebug() << "Successfully unloaded plugin:" << name;
+    return 1;
 } 
