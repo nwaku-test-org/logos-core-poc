@@ -43,6 +43,10 @@ LOGOS_CORE_EXPORT int logos_core_load_plugin(const char* plugin_name);
 // Returns 1 if successful, 0 if failed
 LOGOS_CORE_EXPORT int logos_core_unload_plugin(const char* plugin_name);
 
+// Process a plugin file and add it to known plugins
+// Returns the plugin name if successful, NULL if failed
+LOGOS_CORE_EXPORT char* logos_core_process_plugin(const char* plugin_path);
+
 #ifdef __cplusplus
 }
 #endif

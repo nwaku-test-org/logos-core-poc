@@ -7,6 +7,8 @@
 #include <QPushButton>
 #include <QHBoxLayout>
 #include <QStackedWidget>
+#include <QFileDialog>
+#include <QMessageBox>
 #include "core/plugin_registry.h"
 #include "pluginmethodsview.h"
 #include <QJsonArray>
@@ -24,7 +26,7 @@ CoreModuleView::CoreModuleView(QWidget *parent)
     , m_currentMethodsView(nullptr)
 {
     setupUi();
-    
+
     // Initial update of plugin list
     updatePluginList();
 }
@@ -48,13 +50,13 @@ void CoreModuleView::setupUi()
     // Create stacked widget
     m_stackedWidget = new QStackedWidget(this);
     m_layout->addWidget(m_stackedWidget);
-    
+
     // Create plugins list widget
     m_pluginsListWidget = new QWidget(this);
     QVBoxLayout* pluginsLayout = new QVBoxLayout(m_pluginsListWidget);
     pluginsLayout->setSpacing(20);
     pluginsLayout->setContentsMargins(40, 40, 40, 40);
-    
+
     // Create and style the title
     m_titleLabel = new QLabel("Core Modules", m_pluginsListWidget);
     QFont titleFont = m_titleLabel->font();
@@ -69,10 +71,33 @@ void CoreModuleView::setupUi()
 
     pluginsLayout->addWidget(m_titleLabel);
     pluginsLayout->addWidget(m_subtitleLabel);
-    
+   
+    // Add the "Add Plugin" button
+    QPushButton* addPluginButton = new QPushButton("Add Plugin", m_pluginsListWidget);
+    addPluginButton->setStyleSheet(
+        "QPushButton {"
+        "   background-color: #4CAF50;"
+        "   color: #ffffff;"
+        "   border-radius: 4px;"
+        "   padding: 8px 16px;"
+        "   font-size: 14px;"
+        "   font-weight: bold;"
+        "   margin-bottom: 20px;"
+        "}"
+        "QPushButton:hover {"
+        "   background-color: #45a049;"
+        "}"
+        "QPushButton:pressed {"
+        "   background-color: #3d8b40;"
+        "}"
+    );
+    addPluginButton->setMinimumHeight(40);
+    connect(addPluginButton, &QPushButton::clicked, this, &CoreModuleView::onAddPluginClicked);
+    pluginsLayout->addWidget(addPluginButton);
+
     // Create the plugin list
     createPluginList();
-    
+
     // Add plugins list widget to stacked widget
     m_stackedWidget->addWidget(m_pluginsListWidget);
 }
@@ -84,7 +109,7 @@ void CoreModuleView::createPluginList()
     if (!pluginsLayout) {
         return;
     }
-    
+
     // Create a container widget for the list with padding
     QWidget* listContainer = new QWidget(m_pluginsListWidget);
     listContainer->setObjectName("listContainer");
@@ -111,7 +136,7 @@ void CoreModuleView::createPluginList()
     );
     QVBoxLayout* containerLayout = new QVBoxLayout(listContainer);
     containerLayout->setContentsMargins(20, 20, 20, 20);
-    
+
     // Create the list widget
     m_pluginList = new QListWidget(listContainer);
     m_pluginList->setMinimumHeight(300);
@@ -137,7 +162,7 @@ void CoreModuleView::createPluginList()
         "   color: #ffffff;"
         "}"
     );
-    
+
     containerLayout->addWidget(m_pluginList);
     pluginsLayout->addWidget(listContainer);
 }
@@ -154,7 +179,7 @@ void CoreModuleView::updatePluginList()
 
     // Get the list of known plugins using invokeMethod - now returns QJsonArray with status
     QJsonArray pluginsArray;
-    QMetaObject::invokeMethod(coreManagerPlugin, "getKnownPlugins", 
+    QMetaObject::invokeMethod(coreManagerPlugin, "getKnownPlugins",
                             Qt::DirectConnection,
                             Q_RETURN_ARG(QJsonArray, pluginsArray));
 
@@ -196,8 +221,8 @@ void CoreModuleView::updatePluginList()
 
         // Add status indicator
         QLabel* statusLabel = new QLabel(isLoaded ? "(Loaded)" : "(Not Loaded)");
-        statusLabel->setStyleSheet(isLoaded ? 
-                                  "color: #4CAF50; font-size: 14px;" : 
+        statusLabel->setStyleSheet(isLoaded ?
+                                  "color: #4CAF50; font-size: 14px;" :
                                   "color: #F44336; font-size: 14px;");
         itemLayout->addWidget(statusLabel);
 
@@ -212,7 +237,7 @@ void CoreModuleView::updatePluginList()
             unloadButton->setStyleSheet("background-color: #F44336;"); // Red button for unload
             connect(unloadButton, &QPushButton::clicked, this, &CoreModuleView::onUnloadPluginClicked);
             itemLayout->addWidget(unloadButton);
-            
+
             QPushButton* viewMethodsButton = new QPushButton("View Methods");
             viewMethodsButton->setProperty("pluginName", pluginName);
             viewMethodsButton->setMinimumHeight(30); // Set minimum height for button
@@ -260,7 +285,7 @@ void CoreModuleView::onLoadPluginClicked()
 
     // Call the loadPlugin method
     bool success = false;
-    QMetaObject::invokeMethod(coreManagerPlugin, "loadPlugin", 
+    QMetaObject::invokeMethod(coreManagerPlugin, "loadPlugin",
                             Qt::DirectConnection,
                             Q_RETURN_ARG(bool, success),
                             Q_ARG(QString, pluginName));
@@ -280,29 +305,29 @@ void CoreModuleView::onUnloadPluginClicked()
     if (!button) {
         return;
     }
-    
+
     QString pluginName = button->property("pluginName").toString();
     if (pluginName.isEmpty()) {
         qDebug() << "Plugin name not found in button properties";
         return;
     }
-    
+
     qDebug() << "Unloading plugin:" << pluginName;
-    
+
     // Get the core_manager plugin
     QObject* coreManagerPlugin = PluginRegistry::getPlugin<QObject>("core_manager");
     if (!coreManagerPlugin) {
         qWarning() << "Core manager plugin not found!";
         return;
     }
-    
+
     // Call the unloadPlugin method
     bool success = false;
-    QMetaObject::invokeMethod(coreManagerPlugin, "unloadPlugin", 
+    QMetaObject::invokeMethod(coreManagerPlugin, "unloadPlugin",
                             Qt::DirectConnection,
                             Q_RETURN_ARG(bool, success),
                             Q_ARG(QString, pluginName));
-    
+
     if (success) {
         qDebug() << "Successfully unloaded plugin:" << pluginName;
         // Update the UI to reflect the unloaded plugin
@@ -318,20 +343,20 @@ void CoreModuleView::onViewMethodsClicked()
     if (!button) {
         return;
     }
-    
+
     QString pluginName = button->property("pluginName").toString();
     if (pluginName.isEmpty()) {
         qDebug() << "Plugin name not found in button properties";
         return;
     }
-    
+
     // Create the plugin methods view
     m_currentMethodsView = new PluginMethodsView(pluginName, this);
     connect(m_currentMethodsView, &PluginMethodsView::backClicked, this, &CoreModuleView::onBackToPluginList);
-    
+
     // Add it to the stacked widget
     m_stackedWidget->addWidget(m_currentMethodsView);
-    
+
     // Show the methods view
     m_stackedWidget->setCurrentWidget(m_currentMethodsView);
 }
@@ -340,11 +365,75 @@ void CoreModuleView::onBackToPluginList()
 {
     // Switch back to the plugins list view
     m_stackedWidget->setCurrentWidget(m_pluginsListWidget);
-    
+
     // If there is a current methods view, remove and delete it
     if (m_currentMethodsView) {
         m_stackedWidget->removeWidget(m_currentMethodsView);
         delete m_currentMethodsView;
         m_currentMethodsView = nullptr;
     }
-} 
+}
+
+void CoreModuleView::onAddPluginClicked()
+{
+    qDebug() << "Add Plugin button clicked";
+
+    // Open file dialog to select a plugin file
+    QString pluginFilter;
+
+#ifdef Q_OS_WIN
+    pluginFilter = "Plugins (*.dll)";
+#elif defined(Q_OS_MAC)
+    pluginFilter = "Plugins (*.dylib)";
+#else
+    pluginFilter = "Plugins (*.so)";
+#endif
+
+    // Use the application's current directory instead of home directory
+    QString startDir = QCoreApplication::applicationDirPath();
+
+    QString filePath = QFileDialog::getOpenFileName(
+        this,
+        "Select Plugin File",
+        startDir,
+        pluginFilter
+    );
+
+    if (filePath.isEmpty()) {
+        qDebug() << "No file selected";
+        return;
+    }
+
+    qDebug() << "Selected plugin file:" << filePath;
+
+    // Get the core_manager plugin
+    QObject* coreManagerPlugin = PluginRegistry::getPlugin<QObject>("core_manager");
+    if (!coreManagerPlugin) {
+        QMessageBox::critical(this, "Error", "Core manager plugin not found!");
+        return;
+    }
+
+    // Call the processPlugin method
+    QString pluginName;
+    QMetaObject::invokeMethod(
+        coreManagerPlugin,
+        "processPlugin",
+        Qt::DirectConnection,
+        Q_RETURN_ARG(QString, pluginName),
+        Q_ARG(QString, filePath)
+    );
+
+    if (pluginName.isEmpty()) {
+        QMessageBox::warning(this, "Warning", "Failed to process plugin file.");
+        return;
+    }
+
+    QMessageBox::information(
+        this,
+        "Plugin Added",
+        QString("Plugin '%1' has been added successfully.\nYou can now load it from the list.").arg(pluginName)
+    );
+
+    // Update the UI to show the newly added plugin
+    updatePluginList();
+}

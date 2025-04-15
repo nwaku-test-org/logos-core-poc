@@ -23,6 +23,7 @@ private slots:
     void onBackToPluginList();
     void onLoadPluginClicked();
     void onUnloadPluginClicked();
+    void onAddPluginClicked();
 
 private:
     void setupUi();
@@ -33,13 +34,13 @@ private:
     QLabel* m_subtitleLabel;
     QListWidget* m_pluginList;
     QTimer* m_updateTimer;
-    
+
     // Stacked widget to hold the plugin list and plugin methods views
     QStackedWidget* m_stackedWidget;
-    
+
     // The plugins list container widget
     QWidget* m_pluginsListWidget;
-    
+
     // The current plugin methods view (if any)
     PluginMethodsView* m_currentMethodsView;
 }; 

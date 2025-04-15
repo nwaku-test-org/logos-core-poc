@@ -447,4 +447,29 @@ int logos_core_unload_plugin(const char* plugin_name)
 
     qDebug() << "Successfully unloaded plugin:" << name;
     return 1;
+}
+
+// TODO: this function can probably go to the core manager instead
+char* logos_core_process_plugin(const char* plugin_path)
+{
+    if (!plugin_path) {
+        qWarning() << "Cannot process plugin: path is null";
+        return nullptr;
+    }
+
+    QString path = QString::fromUtf8(plugin_path);
+    qDebug() << "Processing plugin file:" << path;
+
+    QString pluginName = processPlugin(path);
+    if (pluginName.isEmpty()) {
+        qWarning() << "Failed to process plugin file:" << path;
+        return nullptr;
+    }
+
+    // Convert to C string that must be freed by the caller
+    QByteArray utf8Data = pluginName.toUtf8();
+    char* result = new char[utf8Data.size() + 1];
+    strcpy(result, utf8Data.constData());
+
+    return result;
 } 
