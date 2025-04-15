@@ -7,12 +7,15 @@ set(CMAKE_AUTOMOC ON)  # Enable Qt's Meta-Object Compiler
 set(CMAKE_AUTORCC ON)  # Enable automatic compilation of resource files
 set(CMAKE_INCLUDE_CURRENT_DIR ON)
 
-# RPATH settings for macOS
+# RPATH settings
 set(CMAKE_SKIP_BUILD_RPATH FALSE)
 set(CMAKE_BUILD_WITH_INSTALL_RPATH TRUE)
 set(CMAKE_INSTALL_RPATH_USE_LINK_PATH TRUE)
 if(APPLE)
     set(CMAKE_INSTALL_RPATH "@executable_path/../lib")
+else()
+    # For Linux systems, $ORIGIN must be escaped in CMake
+    set(CMAKE_INSTALL_RPATH "\$ORIGIN/../lib:\$ORIGIN/lib")
 endif()
 
 find_package(Qt6 COMPONENTS Widgets REQUIRED)
@@ -50,16 +53,35 @@ target_link_libraries(LogosApp PRIVATE
     logos_core
 )
 
-# Copy the core library to the app's lib directory and fix its install name
+# Copy the core library to the app's lib directory and fix its install path based on platform
 add_custom_command(TARGET LogosApp POST_BUILD
     COMMAND ${CMAKE_COMMAND} -E make_directory ${CMAKE_CURRENT_BINARY_DIR}/lib
-    COMMAND ${CMAKE_COMMAND} -E copy ${LOGOS_CORE_DIR}/build/lib/liblogos_core.dylib ${CMAKE_CURRENT_BINARY_DIR}/lib/
-    COMMAND install_name_tool -id @rpath/liblogos_core.dylib ${CMAKE_CURRENT_BINARY_DIR}/lib/liblogos_core.dylib
-    # Add additional rpath entries for flexibility when moving the binary
-    COMMAND install_name_tool -add_rpath "@executable_path/lib" ${CMAKE_CURRENT_BINARY_DIR}/LogosApp
-    COMMAND install_name_tool -add_rpath "@loader_path/lib" ${CMAKE_CURRENT_BINARY_DIR}/LogosApp
-    COMMENT "Copying logos_core library and fixing installation paths"
+    COMMAND ${CMAKE_COMMAND} -E copy ${LOGOS_CORE_DIR}/build/lib/liblogos_core.so ${CMAKE_CURRENT_BINARY_DIR}/lib/
+    COMMENT "Copying logos_core library"
 )
+
+# Platform-specific library path fixing
+if(APPLE)
+    add_custom_command(TARGET LogosApp POST_BUILD
+        COMMAND install_name_tool -id @rpath/liblogos_core.so ${CMAKE_CURRENT_BINARY_DIR}/lib/liblogos_core.so
+        COMMAND install_name_tool -add_rpath "@executable_path/lib" ${CMAKE_CURRENT_BINARY_DIR}/LogosApp
+        COMMAND install_name_tool -add_rpath "@loader_path/lib" ${CMAKE_CURRENT_BINARY_DIR}/LogosApp
+        COMMENT "Fixing installation paths for macOS"
+    )
+elseif(UNIX AND NOT APPLE)
+    # For Linux, CMake's RPATH settings above should handle most needs
+    # Check if patchelf is available as an alternative for more complex cases
+    find_program(PATCHELF_PROGRAM patchelf)
+    if(PATCHELF_PROGRAM)
+        add_custom_command(TARGET LogosApp POST_BUILD
+            # Properly escape $ORIGIN for shell command
+            COMMAND ${PATCHELF_PROGRAM} --set-rpath "\$ORIGIN/lib:\$ORIGIN/../lib:${CMAKE_CURRENT_BINARY_DIR}/lib" ${CMAKE_CURRENT_BINARY_DIR}/LogosApp
+            COMMENT "Setting RPATH with patchelf for Linux"
+        )
+    else()
+        message(STATUS "patchelf not found - using CMake's built-in RPATH settings for Linux")
+    endif()
+endif()
 
 # Create bin/plugins directory in build folder
 add_custom_command(TARGET LogosApp POST_BUILD

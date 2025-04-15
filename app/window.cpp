@@ -21,7 +21,7 @@ Window::~Window()
 void Window::setupUi()
 {
     // Try to load the main_ui plugin from the plugins directory
-    QString pluginPath = QCoreApplication::applicationDirPath() + "/plugins/main_ui.dylib";
+    QString pluginPath = QCoreApplication::applicationDirPath() + "/plugins/main_ui.so";
     QPluginLoader loader(pluginPath);
 
     QWidget* mainContent = nullptr;
