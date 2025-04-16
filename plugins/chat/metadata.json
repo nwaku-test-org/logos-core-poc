@@ -4,8 +4,9 @@
   "description": "A chat plugin for Logos",
   "author": "Logos Core Team",
   "type": "core",
+  "category": "chat",
   "main": "chat_plugin",
-  "dependencies": [],
+  "dependencies": ["waku"],
   "build": {
     "type": "cmake",
     "files": [

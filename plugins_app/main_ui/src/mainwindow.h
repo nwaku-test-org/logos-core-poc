@@ -21,6 +21,9 @@ public:
     
     // Get the MDI view
     MdiView* getMdiView() const { return m_mdiView; }
+    
+    // Refresh the core module view
+    void refreshCoreModuleView();
 
 private slots:
     void onSidebarButtonClicked();

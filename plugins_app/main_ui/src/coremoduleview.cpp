@@ -73,7 +73,7 @@ void CoreModuleView::setupUi()
     pluginsLayout->addWidget(m_subtitleLabel);
    
     // Add the "Add Plugin" button
-    QPushButton* addPluginButton = new QPushButton("Add Plugin", m_pluginsListWidget);
+    QPushButton* addPluginButton = new QPushButton("Install Plugin", m_pluginsListWidget);
     addPluginButton->setStyleSheet(
         "QPushButton {"
         "   background-color: #4CAF50;"
@@ -376,7 +376,7 @@ void CoreModuleView::onBackToPluginList()
 
 void CoreModuleView::onAddPluginClicked()
 {
-    qDebug() << "Add Plugin button clicked";
+    qDebug() << "Install Plugin button clicked";
 
     // Open file dialog to select a plugin file
     QString pluginFilter;
@@ -413,27 +413,23 @@ void CoreModuleView::onAddPluginClicked()
         return;
     }
 
-    // Call the processPlugin method
-    QString pluginName;
+    // Call the installPlugin method instead of processPlugin
+    bool success = false;
     QMetaObject::invokeMethod(
         coreManagerPlugin,
-        "processPlugin",
+        "installPlugin",
         Qt::DirectConnection,
-        Q_RETURN_ARG(QString, pluginName),
+        Q_RETURN_ARG(bool, success),
         Q_ARG(QString, filePath)
     );
 
-    if (pluginName.isEmpty()) {
-        QMessageBox::warning(this, "Warning", "Failed to process plugin file.");
+    if (!success) {
+        QMessageBox::warning(this, "Warning", "Failed to install plugin file.");
         return;
     }
 
-    QMessageBox::information(
-        this,
-        "Plugin Added",
-        QString("Plugin '%1' has been added successfully.\nYou can now load it from the list.").arg(pluginName)
-    );
+    QMessageBox::information(this, "Success", "Plugin installed successfully!");
 
-    // Update the UI to show the newly added plugin
+    // Refresh the plugin list
     updatePluginList();
 }

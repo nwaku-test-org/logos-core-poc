@@ -11,6 +11,7 @@
 #include "modulesview.h"
 #include "dashboardview.h"
 #include "coremoduleview.h"
+#include "packagemanagerview.h"
 #include "core/plugin_registry.h"
 
 MainWindow::MainWindow(QWidget *parent)
@@ -60,9 +61,16 @@ void MainWindow::setupUi()
     // Create content stack
     m_contentStack = new QStackedWidget(this);
     
+    // Enable resizing for the widget and contentStack
+    setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
+    m_contentStack->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
+    
     // Add widgets to main layout
     m_mainLayout->addWidget(m_sidebar);
     m_mainLayout->addWidget(m_contentStack);
+    
+    // Set a reasonable minimum size for the whole window
+    setMinimumSize(800, 600);
 }
 
 void MainWindow::createSidebar()
@@ -78,6 +86,7 @@ void MainWindow::createSidebar()
         {"Dashboard", ":/icons/chart.png"},
         {"UI Modules", ":/icons/modules.png"},
         {"Core Modules", ":/icons/modules.png"}, // Reusing modules icon for now
+        {"Package Manager", ":/icons/modules.png"}, // Reusing modules icon for now
         {"Settings", ":/icons/settings.png"}
     };
     
@@ -110,6 +119,11 @@ void MainWindow::createContentPages()
     m_coreModuleView = new CoreModuleView(nullptr);
     m_contentStack->addWidget(m_coreModuleView);
     
+    // Package Manager page
+    PackageManagerView *packageManagerView = new PackageManagerView();
+    packageManagerView->setMainWindow(this);
+    m_contentStack->addWidget(packageManagerView);
+    
     // Settings page
     QWidget *settingsPage = new QWidget();
     QVBoxLayout *settingsLayout = new QVBoxLayout(settingsPage);
@@ -131,6 +145,15 @@ void MainWindow::createContentPages()
     m_contentStack->addWidget(settingsPage);
 }
 
+void MainWindow::refreshCoreModuleView()
+{
+    if (m_coreModuleView) {
+        // Call the updatePluginList method which refreshes the view
+        m_coreModuleView->updatePluginList();
+        qDebug() << "CoreModuleView refreshed";
+    }
+}
+
 void MainWindow::onSidebarButtonClicked()
 {
     SidebarButton *clickedButton = qobject_cast<SidebarButton*>(sender());
@@ -149,5 +172,10 @@ void MainWindow::onSidebarButtonClicked()
     int index = m_sidebarButtons.indexOf(clickedButton);
     if (index >= 0 && index < m_contentStack->count()) {
         m_contentStack->setCurrentIndex(index);
+        
+        // If Core Modules view is selected, refresh it
+        if (clickedButton->text() == "Core Modules") {
+            refreshCoreModuleView();
+        }
     }
 } 

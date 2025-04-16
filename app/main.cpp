@@ -16,6 +16,10 @@ int main(int argc, char *argv[])
     // Create QApplication first
     QApplication app(argc, argv);
 
+
+    // TODO: this usage of CoreManager seems incorrect, as it's likely creating two instances, one here
+    // and another in the core_manager plugin itself, so things like setPluginsDirectory is not working properly
+
     // Initialize CoreManager
     CoreManager& core = CoreManager::instance();
     core.initialize(argc, argv);

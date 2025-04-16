@@ -5,5 +5,8 @@
     "author": "Logos",
     "license": "MIT",
     "main": "waku",
-    "dependencies": {}
-} 
+    "dependencies": [],
+    "include": ["libwaku.so", "libwaku.dylib", "libwaku.dll"],
+    "type": "core",
+    "category": "protocol"
+}

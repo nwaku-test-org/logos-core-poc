@@ -16,9 +16,10 @@ class CoreModuleView : public QWidget
 public:
     explicit CoreModuleView(QWidget *parent = nullptr);
     ~CoreModuleView();
+    
+    void updatePluginList();
 
 private slots:
-    void updatePluginList();
     void onViewMethodsClicked();
     void onBackToPluginList();
     void onLoadPluginClicked();

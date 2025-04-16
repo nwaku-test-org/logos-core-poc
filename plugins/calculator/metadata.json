@@ -4,6 +4,7 @@
   "description": "A calculator plugin for performing basic arithmetic operations",
   "author": "Logos Core Team",
   "type": "core",
+  "category": "utils",
   "main": "calculator_plugin",
   "dependencies": [],
   "build": {
