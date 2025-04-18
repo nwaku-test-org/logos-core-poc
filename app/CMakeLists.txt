@@ -64,8 +64,10 @@ if(APPLE)
         COMMENT "Copying logos_core library and fixing installation paths"
     )
 elseif(UNIX AND NOT APPLE)
-    COMMAND ${CMAKE_COMMAND} -E make_directory ${CMAKE_CURRENT_BINARY_DIR}/lib
-    COMMAND ${CMAKE_COMMAND} -E copy ${LOGOS_CORE_DIR}/build/lib/liblogos_core.so ${CMAKE_CURRENT_BINARY_DIR}/lib/
+    add_custom_command(TARGET LogosApp POST_BUILD
+        COMMAND ${CMAKE_COMMAND} -E make_directory ${CMAKE_CURRENT_BINARY_DIR}/lib
+        COMMAND ${CMAKE_COMMAND} -E copy ${LOGOS_CORE_DIR}/build/lib/liblogos_core.so ${CMAKE_CURRENT_BINARY_DIR}/lib/
+    )
 
     # For Linux, CMake's RPATH settings above should handle most needs
     # Check if patchelf is available as an alternative for more complex cases
