@@ -7,14 +7,13 @@ set(CMAKE_AUTOMOC ON)  # Enable Qt's Meta-Object Compiler
 set(CMAKE_AUTORCC ON)  # Enable automatic compilation of resource files
 set(CMAKE_INCLUDE_CURRENT_DIR ON)
 
-# RPATH settings
+# RPATH settings for macOS
 set(CMAKE_SKIP_BUILD_RPATH FALSE)
 set(CMAKE_BUILD_WITH_INSTALL_RPATH TRUE)
 set(CMAKE_INSTALL_RPATH_USE_LINK_PATH TRUE)
 if(APPLE)
     set(CMAKE_INSTALL_RPATH "@executable_path/../lib")
 else()
-    # For Linux systems, $ORIGIN must be escaped in CMake
     set(CMAKE_INSTALL_RPATH "\$ORIGIN/../lib:\$ORIGIN/lib")
 endif()
 
@@ -53,20 +52,16 @@ target_link_libraries(LogosApp PRIVATE
     logos_core
 )
 
-# Copy the core library to the app's lib directory and fix its install path based on platform
-add_custom_command(TARGET LogosApp POST_BUILD
-    COMMAND ${CMAKE_COMMAND} -E make_directory ${CMAKE_CURRENT_BINARY_DIR}/lib
-    COMMAND ${CMAKE_COMMAND} -E copy ${LOGOS_CORE_DIR}/build/lib/liblogos_core.so ${CMAKE_CURRENT_BINARY_DIR}/lib/
-    COMMENT "Copying logos_core library"
-)
-
-# Platform-specific library path fixing
+# Copy the core library to the app's lib directory and fix its install name
 if(APPLE)
     add_custom_command(TARGET LogosApp POST_BUILD
-        COMMAND install_name_tool -id @rpath/liblogos_core.so ${CMAKE_CURRENT_BINARY_DIR}/lib/liblogos_core.so
+        COMMAND ${CMAKE_COMMAND} -E make_directory ${CMAKE_CURRENT_BINARY_DIR}/lib
+        COMMAND ${CMAKE_COMMAND} -E copy ${LOGOS_CORE_DIR}/build/lib/liblogos_core.dylib ${CMAKE_CURRENT_BINARY_DIR}/lib/
+        COMMAND install_name_tool -id @rpath/liblogos_core.dylib ${CMAKE_CURRENT_BINARY_DIR}/lib/liblogos_core.dylib
+        # Add additional rpath entries for flexibility when moving the binary
         COMMAND install_name_tool -add_rpath "@executable_path/lib" ${CMAKE_CURRENT_BINARY_DIR}/LogosApp
         COMMAND install_name_tool -add_rpath "@loader_path/lib" ${CMAKE_CURRENT_BINARY_DIR}/LogosApp
-        COMMENT "Fixing installation paths for macOS"
+        COMMENT "Copying logos_core library and fixing installation paths"
     )
 elseif(UNIX AND NOT APPLE)
     # For Linux, CMake's RPATH settings above should handle most needs
@@ -82,6 +77,7 @@ elseif(UNIX AND NOT APPLE)
         message(STATUS "patchelf not found - using CMake's built-in RPATH settings for Linux")
     endif()
 endif()
+
 
 # Create bin/plugins directory in build folder
 add_custom_command(TARGET LogosApp POST_BUILD
