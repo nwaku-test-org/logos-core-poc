@@ -49,7 +49,7 @@ if(APPLE)
     )
 else()
     set_target_properties(colorchanger PROPERTIES
-        PREFIX "lib"
+        PREFIX ""
         SUFFIX ".so"
     )
 endif() 
