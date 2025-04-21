@@ -61,7 +61,7 @@ if(APPLE)
     )
 else()
     set_target_properties(waku_ui PROPERTIES
-        PREFIX "lib"
+        PREFIX ""
         SUFFIX ".so"
     )
 endif() 

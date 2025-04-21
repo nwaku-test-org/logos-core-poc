@@ -68,7 +68,7 @@ if(APPLE)
     )
 else()
     set_target_properties(main_ui PROPERTIES
-        PREFIX "lib"
+        PREFIX ""
         SUFFIX ".so"
     )
 endif() 
