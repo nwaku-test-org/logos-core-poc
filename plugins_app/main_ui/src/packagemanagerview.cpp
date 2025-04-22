@@ -146,9 +146,25 @@ void PackageManagerView::createCategorySidebar()
     
     // Create category list
     m_categoryList = new QListWidget();
-    m_categoryList->setStyleSheet("QListWidget { background-color: #2D2D2D; color: #ffffff; border: none; }"
-                                 "QListWidget::item { padding: 8px; }"
-                                 "QListWidget::item:selected { background-color: #3D3D3D; }");
+    m_categoryList->setStyleSheet(
+        "QListWidget { "
+        "  background-color: #2D2D2D; "
+        "  color: #ffffff; "
+        "  border: none; "
+        "}"
+        "QListWidget::item { "
+        "  padding: 10px 15px; "
+        "  border-radius: 3px; "
+        "  margin: 3px 5px; "
+        "}"
+        "QListWidget::item:selected { "
+        "  background-color: #3D3D3D; "
+        "  color: #ffffff; "
+        "}"
+        "QListWidget::item:hover:!selected { "
+        "  background-color: #353535; "
+        "}"
+    );
     
     // Add "All" category item by default
     m_categoryList->addItem("All");
@@ -174,17 +190,16 @@ void PackageManagerView::createPackageTable()
                                  "QTableWidget::item:alternate { background-color: #2a2a2a; }"
                                  "QTableWidget::item:selected { background-color: #4A90E2; color: #ffffff; }"
                                  "QTableWidget::item { border-bottom: 1px solid #444444; }");
-    
-    // Enable row numbers
+
     m_packageTable->setRowCount(0);
-    m_packageTable->verticalHeader()->setVisible(true);
-    
+    m_packageTable->verticalHeader()->setVisible(false);
+
     // Set columns
     m_packageTable->setColumnCount(5);
     QStringList headers;
     headers << "S" << "Package" << "Installed Ver" << "Latest Version" << "Description";
     m_packageTable->setHorizontalHeaderLabels(headers);
-    
+
     // Configure header
     QHeaderView* header = m_packageTable->horizontalHeader();
     header->setSectionResizeMode(0, QHeaderView::Fixed);
@@ -192,21 +207,22 @@ void PackageManagerView::createPackageTable()
     header->setSectionsClickable(true);
     header->setSectionResizeMode(1, QHeaderView::Stretch);
     header->setSectionResizeMode(4, QHeaderView::Stretch);
-    
-    // Style vertical header (row numbers)
+
+    header->setStyleSheet("QHeaderView::section { background-color: #333333; color: #a0a0a0; font-weight: bold; }");
+
     QHeaderView* verticalHeader = m_packageTable->verticalHeader();
     verticalHeader->setSectionResizeMode(QHeaderView::Fixed);
     verticalHeader->setDefaultSectionSize(30);
     verticalHeader->setMinimumWidth(30);
-    
+
     // Set column widths
     m_packageTable->setColumnWidth(0, 30);  // S column (checkbox)
     m_packageTable->setColumnWidth(2, 150); // Installed Version
     m_packageTable->setColumnWidth(3, 150); // Latest Version
-    
+
     // Connect package selection signal
     connect(m_packageTable, &QTableWidget::cellClicked, this, &PackageManagerView::onPackageSelected);
-    
+
     // Connect checkbox state change signal
     connect(m_packageTable, &QTableWidget::itemChanged, [this](QTableWidgetItem* item) {
         // If this is a checkbox item (column 0)
@@ -222,7 +238,7 @@ void PackageManagerView::createPackageDetails()
     m_detailsTextEdit = new QTextEdit();
     m_detailsTextEdit->setReadOnly(true);
     m_detailsTextEdit->setStyleSheet("QTextEdit { background-color: #333333; color: #ffffff; border: 1px solid #444444; }");
-    
+
     // Set a proper size policy to allow resizing
     m_detailsTextEdit->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
 }
@@ -232,21 +248,21 @@ void PackageManagerView::addPackage(const QString& name, const QString& installe
 {
     int row = m_packageTable->rowCount();
     m_packageTable->insertRow(row);
-    
+
     // Set row number (1-based for display)
     m_packageTable->setVerticalHeaderItem(row, new QTableWidgetItem(QString::number(row + 1)));
-    
+
     // Create checkbox item for the S column
     QTableWidgetItem* checkItem = new QTableWidgetItem();
     checkItem->setCheckState(checked ? Qt::Checked : Qt::Unchecked);
     m_packageTable->setItem(row, 0, checkItem);
-    
+
     // Add other columns
     m_packageTable->setItem(row, 1, new QTableWidgetItem(name));
     m_packageTable->setItem(row, 2, new QTableWidgetItem(installedVersion));
     m_packageTable->setItem(row, 3, new QTableWidgetItem(latestVersion));
     m_packageTable->setItem(row, 4, new QTableWidgetItem(description));
-    
+
     // Update Install button enabled state
     updateInstallButtonState();
 }
@@ -261,15 +277,15 @@ void PackageManagerView::onCategorySelected(int row)
     qDebug("Category selected: %s", qPrintable(category));
     
     // If "All" is selected, show all packages
-    if (category == "All") {
+    if (category.compare("All", Qt::CaseInsensitive) == 0) {
         for (const auto& info : m_packages) {
             addPackage(info.name, info.installedVersion, info.latestVersion, 
                       info.description, info.isLoaded);
         }
     } else {
-        // Show only packages in the selected category
+        // Show only packages in the selected category (case insensitive comparison)
         for (const auto& info : m_packages) {
-            if (info.category == category) {
+            if (info.category.compare(category, Qt::CaseInsensitive) == 0) {
                 addPackage(info.name, info.installedVersion, info.latestVersion, 
                           info.description, info.isLoaded);
             }
@@ -447,7 +463,12 @@ void PackageManagerView::scanPackagesFolder()
     std::sort(sortedCategories.begin(), sortedCategories.end());
     // Add sorted categories to the list
     for (const QString& category : sortedCategories) {
-        m_categoryList->addItem(category);
+        // Capitalize only the first letter
+        if (!category.isEmpty()) {
+            QString capitalizedCategory = category;
+            capitalizedCategory[0] = capitalizedCategory[0].toUpper();
+            m_categoryList->addItem(capitalizedCategory);
+        }
     }
     
     qDebug("Loaded %d packages from packages directory", loadedCount);
