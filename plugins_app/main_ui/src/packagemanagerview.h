@@ -13,6 +13,8 @@
 #include <QPluginLoader>
 #include <QLibrary>
 #include <QMap>
+#include <QSet>
+#include <QStringList>
 #include "core/plugin_registry.h"
 
 class MainWindow;
@@ -33,6 +35,7 @@ private slots:
     void onPackageSelected(int row, int column);
     void onReloadClicked();
     void onApplyClicked();
+    void onPackageCheckStateChanged(QTableWidgetItem* item);
 
 private:
     struct PackageInfo {
@@ -43,6 +46,7 @@ private:
         QString path;
         QString category;
         QString type;
+        QStringList dependencies;
         bool isLoaded;
     };
 
@@ -58,6 +62,9 @@ private:
     void addFallbackPackages();
     QList<QString> getSelectedPackages();
     void updateInstallButtonState();
+    void selectDependencies(const QString& packageName, QSet<QString>& processedPackages);
+    void selectPackage(const QString& packageName, bool select);
+    int findPackageRow(const QString& packageName);
     
     QVBoxLayout *m_layout;
     QSplitter *m_splitter;
@@ -76,4 +83,7 @@ private:
     
     // Reference to the main window
     MainWindow* m_mainWindow;
+    
+    // Flag to prevent circular dependency selection
+    bool m_isProcessingDependencies;
 }; 

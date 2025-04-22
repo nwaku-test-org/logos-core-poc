@@ -226,13 +226,8 @@ void PackageManagerView::createPackageTable()
     // Connect package selection signal
     connect(m_packageTable, &QTableWidget::cellClicked, this, &PackageManagerView::onPackageSelected);
 
-    // Connect checkbox state change signal
-    connect(m_packageTable, &QTableWidget::itemChanged, [this](QTableWidgetItem* item) {
-        // If this is a checkbox item (column 0)
-        if (item && item->column() == 0) {
-            updateInstallButtonState();
-        }
-    });
+    // Connect checkbox state change signal - use itemChanged signal which sends QTableWidgetItem*
+    connect(m_packageTable, &QTableWidget::itemChanged, this, &PackageManagerView::onPackageCheckStateChanged);
 }
 
 void PackageManagerView::createPackageDetails()
@@ -320,7 +315,10 @@ void PackageManagerView::onPackageSelected(int row, int column)
         detailText += QString("<p><b>Description:</b> %1</p>").arg(description);
         detailText += QString("<p><b>Installed Version:</b> %1</p>").arg(installedVer);
         detailText += QString("<p><b>Latest Version:</b> %1</p>").arg(latestVer);
-        detailText += QString("<p><b>Path:</b> %1</p>").arg(info.path);
+        
+        if (!info.path.isEmpty()) {
+            detailText += QString("<p><b>Path:</b> %1</p>").arg(info.path);
+        }
         
         // Add author information if available
         QString author = metaDataObj.value("author").toString();
@@ -332,6 +330,17 @@ void PackageManagerView::onPackageSelected(int row, int column)
         QString type = metaDataObj.value("type").toString();
         if (!type.isEmpty()) {
             detailText += QString("<p><b>Type:</b> %1</p>").arg(type);
+        }
+        
+        // Add dependencies information
+        if (!info.dependencies.isEmpty()) {
+            detailText += "<p><b>Dependencies:</b></p><ul>";
+            for (const QString& dependency : info.dependencies) {
+                detailText += QString("<li>%1</li>").arg(dependency);
+            }
+            detailText += "</ul>";
+        } else {
+            detailText += "<p><b>Dependencies:</b> None</p>";
         }
         
         // Add capabilities information if available
@@ -443,6 +452,13 @@ void PackageManagerView::scanPackagesFolder()
         // Get plugin type
         QString type = root.value("type").toString("Plugin");
         
+        // Get plugin dependencies
+        QStringList dependencies;
+        QJsonArray depsArray = root.value("dependencies").toArray();
+        for (const QJsonValue& dep : depsArray) {
+            dependencies.append(dep.toString());
+        }
+        
         // Store package info
         PackageInfo info;
         info.name = name;
@@ -453,6 +469,7 @@ void PackageManagerView::scanPackagesFolder()
         info.isLoaded = false;
         info.category = category;
         info.type = type;
+        info.dependencies = dependencies;
         
         m_packages[name] = info;
         
@@ -486,6 +503,9 @@ void PackageManagerView::scanPackagesFolder()
     if (loadedCount == 0) {
         addFallbackPackages();
     }
+    
+    // Initialize dependency processing flag
+    m_isProcessingDependencies = false;
 }
 
 void PackageManagerView::clearPackageList()
@@ -510,7 +530,7 @@ void PackageManagerView::onReloadClicked()
 
 void PackageManagerView::addFallbackPackages()
 {
-    // Add some demo packages for UI demonstration
+    // Add some demo packages for UI demonstration with dependencies
     addPackage("0ad", "0.0.23.1-4ubuntu3", "0.0.23.1-4ubuntu3", "Game", "Real-time strategy game of ancient warfare", true);
     addPackage("0ad-data", "0.0.23.1-1", "0.0.23.1-1", "Data", "Real-time strategy game of ancient warfare");
     addPackage("0ad-data-common", "0.0.23.1-1", "0.0.23.1-1", "Data", "Real-time strategy game of ancient warfare");
@@ -682,4 +702,87 @@ void PackageManagerView::updateInstallButtonState()
 
     // Enable the Install button only if at least one package is selected
     m_applyButton->setEnabled(anySelected);
+}
+
+// Helper method to find a package row by name
+int PackageManagerView::findPackageRow(const QString& packageName)
+{
+    for (int row = 0; row < m_packageTable->rowCount(); ++row) {
+        QTableWidgetItem* nameItem = m_packageTable->item(row, 1);
+        if (nameItem && nameItem->text() == packageName) {
+            return row;
+        }
+    }
+    return -1;
+}
+
+// Helper method to select or deselect a package
+void PackageManagerView::selectPackage(const QString& packageName, bool select)
+{
+    int row = findPackageRow(packageName);
+    if (row != -1) {
+        QTableWidgetItem* checkItem = m_packageTable->item(row, 0);
+        if (checkItem) {
+            checkItem->setCheckState(select ? Qt::Checked : Qt::Unchecked);
+        }
+    }
+}
+
+// Recursive method to select all dependencies of a package
+void PackageManagerView::selectDependencies(const QString& packageName, QSet<QString>& processedPackages)
+{
+    // Prevent infinite recursion with circular dependencies
+    if (processedPackages.contains(packageName)) {
+        return;
+    }
+    
+    // Mark this package as processed
+    processedPackages.insert(packageName);
+    
+    // Check if this package exists and has dependencies
+    if (!m_packages.contains(packageName)) {
+        return;
+    }
+    
+    const PackageInfo& info = m_packages[packageName];
+    
+    // Select this package
+    selectPackage(packageName, true);
+    
+    // Recursively select all dependencies
+    for (const QString& dependency : info.dependencies) {
+        selectDependencies(dependency, processedPackages);
+    }
+}
+
+// Handle checkbox state changes
+void PackageManagerView::onPackageCheckStateChanged(QTableWidgetItem* item)
+{
+    // Only process if it's the checkbox column (0) and we're not already processing dependencies
+    if (!item || item->column() != 0 || m_isProcessingDependencies) {
+        return;
+    }
+    
+    int row = item->row();
+    QTableWidgetItem* nameItem = m_packageTable->item(row, 1);
+    
+    if (!nameItem) {
+        return;
+    }
+    
+    bool isChecked = (item->checkState() == Qt::Checked);
+    QString packageName = nameItem->text();
+    
+    // If the package is being checked, select its dependencies
+    if (isChecked) {
+        m_isProcessingDependencies = true;
+        
+        QSet<QString> processedPackages;
+        selectDependencies(packageName, processedPackages);
+        
+        m_isProcessingDependencies = false;
+    }
+    
+    // Update the install button state
+    updateInstallButtonState();
 } 
