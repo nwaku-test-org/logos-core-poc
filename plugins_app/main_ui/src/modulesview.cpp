@@ -174,38 +174,6 @@ void ModulesView::setupPluginButtons(QVBoxLayout* buttonLayout)
             // Add header layout to plugin layout
             pluginLayout->addLayout(headerLayout);
             
-            // Read and display metadata
-            QString pluginPath = getPluginPath(plugin);
-            QPluginLoader loader(pluginPath);
-            QJsonObject metadata = loader.metaData();
-            QJsonObject customMetadata = metadata.value("MetaData").toObject();
-            
-            if (!customMetadata.isEmpty()) {
-                // Create metadata grid
-                QGridLayout* metadataLayout = new QGridLayout();
-                metadataLayout->setSpacing(8);
-                int row = 0;
-                
-                // Helper function to add metadata field
-                auto addMetadataField = [&](const QString& label, const QString& value) {
-                    if (!value.isEmpty()) {
-                        QLabel* fieldLabel = new QLabel(label + ":", this);
-                        fieldLabel->setStyleSheet("color: #888888;");
-                        QLabel* fieldValue = new QLabel(value, this);
-                        fieldValue->setStyleSheet("color: #cccccc;");
-                        metadataLayout->addWidget(fieldLabel, row, 0);
-                        metadataLayout->addWidget(fieldValue, row, 1);
-                        row++;
-                    }
-                };
-                
-                addMetadataField("Version", customMetadata.value("version").toString());
-                addMetadataField("Author", customMetadata.value("author").toString());
-                addMetadataField("Description", customMetadata.value("description").toString());
-                
-                pluginLayout->addLayout(metadataLayout);
-            }
-            
             // Add plugin frame to main layout
             buttonLayout->addWidget(pluginFrame);
             
@@ -479,4 +447,37 @@ void ModulesView::updateButtonStates(const QString& name, bool isEnabled)
             m_unloadButtons[name]->show();
         }
     }
+}
+
+void ModulesView::refreshPluginList()
+{
+    qDebug() << "Refreshing UI modules plugin list";
+    
+    // Clear the current list
+    clearPluginList();
+    
+    // Re-setup the plugin buttons
+    setupPluginButtons(m_buttonLayout);
+}
+
+void ModulesView::clearPluginList()
+{
+    qDebug() << "Clearing UI modules plugin list";
+    
+    // Clear the button layout
+    if (m_buttonLayout) {
+        // Remove all widgets from the button layout
+        QLayoutItem* item;
+        while ((item = m_buttonLayout->takeAt(0)) != nullptr) {
+            if (item->widget()) {
+                item->widget()->hide();
+                item->widget()->deleteLater();
+            }
+            delete item;
+        }
+    }
+    
+    // Clear button maps
+    m_loadButtons.clear();
+    m_unloadButtons.clear();
 } 

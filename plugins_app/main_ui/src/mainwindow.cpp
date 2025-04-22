@@ -12,6 +12,7 @@
 #include "dashboardview.h"
 #include "coremoduleview.h"
 #include "packagemanagerview.h"
+#include "modulesgenericview.h"
 #include "core/plugin_registry.h"
 
 MainWindow::MainWindow(QWidget *parent)
@@ -84,8 +85,7 @@ void MainWindow::createSidebar()
     ButtonInfo buttonInfos[] = {
         {"Apps", ":/icons/home.png"},
         {"Dashboard", ":/icons/chart.png"},
-        {"UI Modules", ":/icons/modules.png"},
-        {"Core Modules", ":/icons/modules.png"}, // Reusing modules icon for now
+        {"Modules", ":/icons/modules.png"},
         {"Package Manager", ":/icons/modules.png"}, // Reusing modules icon for now
         {"Settings", ":/icons/settings.png"}
     };
@@ -111,13 +111,9 @@ void MainWindow::createContentPages()
     DashboardView *dashboardView = new DashboardView();
     m_contentStack->addWidget(dashboardView);
     
-    // Modules page - pass the MainWindow instance to ModulesView
-    ModulesView *modulesView = new ModulesView(nullptr, this);
-    m_contentStack->addWidget(modulesView);
-    
-    // Core Modules page - create directly
-    m_coreModuleView = new CoreModuleView(nullptr);
-    m_contentStack->addWidget(m_coreModuleView);
+    // Modules page (contains both Apps and Core Modules tabs)
+    m_modulesGenericView = new ModulesGenericView(nullptr, this);
+    m_contentStack->addWidget(m_modulesGenericView);
     
     // Package Manager page
     PackageManagerView *packageManagerView = new PackageManagerView();
@@ -147,10 +143,19 @@ void MainWindow::createContentPages()
 
 void MainWindow::refreshCoreModuleView()
 {
-    if (m_coreModuleView) {
-        // Call the updatePluginList method which refreshes the view
-        m_coreModuleView->updatePluginList();
-        qDebug() << "CoreModuleView refreshed";
+    // Get the CoreModuleView from ModulesGenericView
+    if (m_modulesGenericView && m_modulesGenericView->getCoreModuleView()) {
+        m_modulesGenericView->getCoreModuleView()->updatePluginList();
+        qDebug() << "CoreModuleView refreshed from ModulesGenericView";
+    }
+}
+
+void MainWindow::refreshModulesView()
+{
+    if (m_modulesGenericView) {
+        // Call the refreshModulesView method which refreshes the ModulesView tab
+        m_modulesGenericView->refreshModulesView();
+        qDebug() << "ModulesView refreshed";
     }
 }
 
@@ -173,8 +178,11 @@ void MainWindow::onSidebarButtonClicked()
     if (index >= 0 && index < m_contentStack->count()) {
         m_contentStack->setCurrentIndex(index);
         
-        // If Core Modules view is selected, refresh it
-        if (clickedButton->text() == "Core Modules") {
+        // If Modules view is selected, refresh it
+        if (clickedButton->text() == "Modules") {
+            refreshModulesView();
+            
+            // Check if there's a CoreModuleView and refresh it too since it's on one of the tabs
             refreshCoreModuleView();
         }
     }

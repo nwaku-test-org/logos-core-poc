@@ -14,6 +14,8 @@
 #include <QMetaObject>
 #include <algorithm>
 #include <QSizePolicy>
+#include <QDir>
+#include <QFile>
 
 PackageManagerView::PackageManagerView(QWidget *parent)
     : QWidget(parent)
@@ -195,9 +197,9 @@ void PackageManagerView::createPackageTable()
     m_packageTable->verticalHeader()->setVisible(false);
 
     // Set columns
-    m_packageTable->setColumnCount(5);
+    m_packageTable->setColumnCount(6);
     QStringList headers;
-    headers << "S" << "Package" << "Installed Ver" << "Latest Version" << "Description";
+    headers << "S" << "Package" << "Installed Ver" << "Latest Version" << "Type" << "Description";
     m_packageTable->setHorizontalHeaderLabels(headers);
 
     // Configure header
@@ -206,7 +208,7 @@ void PackageManagerView::createPackageTable()
     header->setDefaultSectionSize(150);
     header->setSectionsClickable(true);
     header->setSectionResizeMode(1, QHeaderView::Stretch);
-    header->setSectionResizeMode(4, QHeaderView::Stretch);
+    header->setSectionResizeMode(5, QHeaderView::Stretch);
 
     header->setStyleSheet("QHeaderView::section { background-color: #333333; color: #a0a0a0; font-weight: bold; }");
 
@@ -216,9 +218,10 @@ void PackageManagerView::createPackageTable()
     verticalHeader->setMinimumWidth(30);
 
     // Set column widths
-    m_packageTable->setColumnWidth(0, 30);  // S column (checkbox)
-    m_packageTable->setColumnWidth(2, 150); // Installed Version
-    m_packageTable->setColumnWidth(3, 150); // Latest Version
+    m_packageTable->setColumnWidth(0, 30);   // S column (checkbox)
+    m_packageTable->setColumnWidth(2, 150);  // Installed Version
+    m_packageTable->setColumnWidth(3, 150);  // Latest Version
+    m_packageTable->setColumnWidth(4, 100);  // Type
 
     // Connect package selection signal
     connect(m_packageTable, &QTableWidget::cellClicked, this, &PackageManagerView::onPackageSelected);
@@ -244,7 +247,8 @@ void PackageManagerView::createPackageDetails()
 }
 
 void PackageManagerView::addPackage(const QString& name, const QString& installedVersion, 
-                                 const QString& latestVersion, const QString& description, bool checked)
+                                 const QString& latestVersion, const QString& type,
+                                 const QString& description, bool checked)
 {
     int row = m_packageTable->rowCount();
     m_packageTable->insertRow(row);
@@ -261,7 +265,8 @@ void PackageManagerView::addPackage(const QString& name, const QString& installe
     m_packageTable->setItem(row, 1, new QTableWidgetItem(name));
     m_packageTable->setItem(row, 2, new QTableWidgetItem(installedVersion));
     m_packageTable->setItem(row, 3, new QTableWidgetItem(latestVersion));
-    m_packageTable->setItem(row, 4, new QTableWidgetItem(description));
+    m_packageTable->setItem(row, 4, new QTableWidgetItem(type));
+    m_packageTable->setItem(row, 5, new QTableWidgetItem(description));
 
     // Update Install button enabled state
     updateInstallButtonState();
@@ -279,14 +284,14 @@ void PackageManagerView::onCategorySelected(int row)
     // If "All" is selected, show all packages
     if (category.compare("All", Qt::CaseInsensitive) == 0) {
         for (const auto& info : m_packages) {
-            addPackage(info.name, info.installedVersion, info.latestVersion, 
+            addPackage(info.name, info.installedVersion, info.latestVersion, info.type,
                       info.description, info.isLoaded);
         }
     } else {
         // Show only packages in the selected category (case insensitive comparison)
         for (const auto& info : m_packages) {
             if (info.category.compare(category, Qt::CaseInsensitive) == 0) {
-                addPackage(info.name, info.installedVersion, info.latestVersion, 
+                addPackage(info.name, info.installedVersion, info.latestVersion, info.type,
                           info.description, info.isLoaded);
             }
         }
@@ -299,7 +304,7 @@ void PackageManagerView::onPackageSelected(int row, int column)
     QString packageName = m_packageTable->item(row, 1)->text();
     QString installedVer = m_packageTable->item(row, 2)->text();
     QString latestVer = m_packageTable->item(row, 3)->text();
-    QString description = m_packageTable->item(row, 4)->text();
+    QString description = m_packageTable->item(row, 5)->text();
     
     // Check if this is one of our scanned packages
     if (m_packages.contains(packageName)) {
@@ -435,6 +440,9 @@ void PackageManagerView::scanPackagesFolder()
         QString category = root.value("category").toString("Uncategorized");
         categories.insert(category);
         
+        // Get plugin type
+        QString type = root.value("type").toString("Plugin");
+        
         // Store package info
         PackageInfo info;
         info.name = name;
@@ -444,11 +452,12 @@ void PackageManagerView::scanPackagesFolder()
         info.path = filePath;
         info.isLoaded = false;
         info.category = category;
+        info.type = type;
         
         m_packages[name] = info;
         
         // Add to UI
-        addPackage(name, version, version, description);
+        addPackage(name, version, version, type, description);
         
         loadedCount++;
     }
@@ -502,47 +511,81 @@ void PackageManagerView::onReloadClicked()
 void PackageManagerView::addFallbackPackages()
 {
     // Add some demo packages for UI demonstration
-    addPackage("0ad", "0.0.23.1-4ubuntu3", "0.0.23.1-4ubuntu3", "Real-time strategy game of ancient warfare", true);
-    addPackage("0ad-data", "0.0.23.1-1", "0.0.23.1-1", "Real-time strategy game of ancient warfare");
-    addPackage("0ad-data-common", "0.0.23.1-1", "0.0.23.1-1", "Real-time strategy game of ancient warfare");
-    addPackage("0install", "2.15.1-1", "2.15.1-1", "cross-distribution packaging system");
-    addPackage("0install-core", "2.15.1-1", "2.15.1-1", "cross-distribution packaging system");
-    addPackage("0xffff", "0.8-1", "0.8-1", "Open Free Fiasco Firmware");
-    addPackage("2048-qt", "0.1.6-2build1", "0.1.6-2build1", "mathematics based puzzle game");
+    addPackage("0ad", "0.0.23.1-4ubuntu3", "0.0.23.1-4ubuntu3", "Game", "Real-time strategy game of ancient warfare", true);
+    addPackage("0ad-data", "0.0.23.1-1", "0.0.23.1-1", "Data", "Real-time strategy game of ancient warfare");
+    addPackage("0ad-data-common", "0.0.23.1-1", "0.0.23.1-1", "Data", "Real-time strategy game of ancient warfare");
+    addPackage("0install", "2.15.1-1", "2.15.1-1", "System", "cross-distribution packaging system");
+    addPackage("0install-core", "2.15.1-1", "2.15.1-1", "System", "cross-distribution packaging system");
+    addPackage("0xffff", "0.8-1", "0.8-1", "Utility", "Open Free Fiasco Firmware");
+    addPackage("2048-qt", "0.1.6-2build1", "0.1.6-2build1", "Game", "mathematics based puzzle game");
 }
 
 void PackageManagerView::onApplyClicked()
 {
     QList<QString> selectedPackages = getSelectedPackages();
-    
+
     if (selectedPackages.isEmpty()) {
         m_detailsTextEdit->setText("No packages selected. Select at least one package to install.");
         return;
     }
-    
+
     // Get the core_manager plugin
     QObject* coreManagerPlugin = PluginRegistry::getPlugin<QObject>("core_manager");
-    
+
     if (!coreManagerPlugin) {
         m_detailsTextEdit->setText("Error: core_manager plugin not found. Cannot process plugins.");
         qDebug() << "core_manager plugin not found";
         return;
     }
-    
+
     // Process each selected package
     QStringList successfulPlugins;
     QStringList failedPlugins;
-    
+
     for (const QString& packageName : selectedPackages) {
         if (!m_packages.contains(packageName)) {
             failedPlugins << packageName + " (package not found)";
             continue;
         }
-        
+
         const PackageInfo& info = m_packages[packageName];
         QString filePath = info.path;
-        
-        // First, install the plugin to the core plugins directory
+
+        // TEMPORARY CHANGE: Special handling for UI plugins - copy directly to ./plugins directory
+        // for demonstration purposes, this should be done through the core
+        if (info.type.compare("UI", Qt::CaseInsensitive) == 0) {
+            // Get the application directory path and create the plugins directory path
+            QString appDir = QCoreApplication::applicationDirPath();
+            QString pluginsDir = appDir + "/plugins";
+
+            // Make sure the plugins directory exists
+            QDir dir;
+            if (!dir.exists(pluginsDir)) {
+                dir.mkpath(pluginsDir);
+            }
+
+            // Generate the destination file path
+            QFileInfo fileInfo(filePath);
+            QString destFilePath = pluginsDir + "/" + fileInfo.fileName();
+
+            // Copy the file
+            bool copySuccess = QFile::copy(filePath, destFilePath);
+            if (copySuccess) {
+                // Set permissions to make it writeable
+                QFile::setPermissions(destFilePath, 
+                    QFile::ReadOwner | QFile::WriteOwner | QFile::ExeOwner | 
+                    QFile::ReadGroup | QFile::WriteGroup | QFile::ExeGroup | 
+                    QFile::ReadOther | QFile::WriteOther | QFile::ExeOther);
+
+                successfulPlugins << packageName + " (UI plugin copied to plugins directory)";
+            } else {
+                failedPlugins << packageName + " (failed to copy UI plugin)";
+            }
+
+            continue;
+        }
+
+        // Regular installation process for non-UI plugins
         bool installSuccess = false;
         QMetaObject::invokeMethod(
             coreManagerPlugin,
@@ -551,12 +594,12 @@ void PackageManagerView::onApplyClicked()
             Q_RETURN_ARG(bool, installSuccess),
             Q_ARG(QString, filePath)
         );
-        
+
         if (!installSuccess) {
             failedPlugins << packageName + " (installation failed)";
             continue;
         }
-        
+
         // Then process the plugin to load it
         QString pluginName;
         bool success = QMetaObject::invokeMethod(
@@ -573,10 +616,10 @@ void PackageManagerView::onApplyClicked()
             failedPlugins << packageName + " (processing failed)";
         }
     }
-    
+
     // Display the results
     QString resultText = "<h3>Installation Results</h3>";
-    
+
     if (!successfulPlugins.isEmpty()) {
         resultText += "<p><b>Successfully installed:</b></p><ul>";
         for (const QString& plugin : successfulPlugins) {
@@ -584,7 +627,7 @@ void PackageManagerView::onApplyClicked()
         }
         resultText += "</ul>";
     }
-    
+
     if (!failedPlugins.isEmpty()) {
         resultText += "<p><b>Failed to install:</b></p><ul>";
         for (const QString& plugin : failedPlugins) {
@@ -592,15 +635,16 @@ void PackageManagerView::onApplyClicked()
         }
         resultText += "</ul>";
     }
-    
+
     // If we have a reference to the main window, refresh the core modules view
     if (m_mainWindow && !successfulPlugins.isEmpty()) {
         m_mainWindow->refreshCoreModuleView();
-        resultText += "<p><b>Core modules view refreshed.</b></p>";
+        m_mainWindow->refreshModulesView();
+        resultText += "<p><b>Module views refreshed.</b></p>";
     }
-    
+
     m_detailsTextEdit->setHtml(resultText);
-    
+
     // Refresh the package list to show updated status
     scanPackagesFolder();
 }
@@ -608,7 +652,7 @@ void PackageManagerView::onApplyClicked()
 QList<QString> PackageManagerView::getSelectedPackages()
 {
     QList<QString> selectedPackages;
-    
+
     // Check all rows in the package table
     for (int row = 0; row < m_packageTable->rowCount(); ++row) {
         QTableWidgetItem* checkItem = m_packageTable->item(row, 0);
@@ -619,7 +663,7 @@ QList<QString> PackageManagerView::getSelectedPackages()
             }
         }
     }
-    
+
     return selectedPackages;
 }
 
@@ -627,7 +671,7 @@ void PackageManagerView::updateInstallButtonState()
 {
     // Check if any package is selected
     bool anySelected = false;
-    
+
     for (int row = 0; row < m_packageTable->rowCount(); ++row) {
         QTableWidgetItem* checkItem = m_packageTable->item(row, 0);
         if (checkItem && checkItem->checkState() == Qt::Checked) {
@@ -635,7 +679,7 @@ void PackageManagerView::updateInstallButtonState()
             break;
         }
     }
-    
+
     // Enable the Install button only if at least one package is selected
     m_applyButton->setEnabled(anySelected);
 } 

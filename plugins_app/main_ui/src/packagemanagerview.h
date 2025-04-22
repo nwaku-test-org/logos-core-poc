@@ -42,6 +42,7 @@ private:
         QString description;
         QString path;
         QString category;
+        QString type;
         bool isLoaded;
     };
 
@@ -50,7 +51,8 @@ private:
     void createCategorySidebar();
     void createPackageDetails();
     void addPackage(const QString& name, const QString& installedVersion, 
-                   const QString& latestVersion, const QString& description, bool checked = false);
+                   const QString& latestVersion, const QString& type,
+                   const QString& description, bool checked = false);
     void scanPackagesFolder();
     void clearPackageList();
     void addFallbackPackages();

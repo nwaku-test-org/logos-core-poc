@@ -9,7 +9,7 @@
 #include "sidebarbutton.h"
 #include "mdiview.h"
 
-class CoreModuleView;
+class ModulesGenericView;
 
 class MainWindow : public QWidget
 {
@@ -24,6 +24,9 @@ public:
     
     // Refresh the core module view
     void refreshCoreModuleView();
+    
+    // Refresh the UI modules view
+    void refreshModulesView();
 
 private slots:
     void onSidebarButtonClicked();
@@ -46,6 +49,6 @@ private:
     // MDI View
     MdiView *m_mdiView;
     
-    // Core Module View
-    CoreModuleView *m_coreModuleView;
+    // Modules View
+    ModulesGenericView *m_modulesGenericView;
 }; 

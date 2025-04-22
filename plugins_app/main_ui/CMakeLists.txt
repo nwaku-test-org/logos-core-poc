@@ -30,6 +30,7 @@ set(SOURCES
     src/mdichild.cpp
     src/mdiview.cpp
     src/modulesview.cpp
+    src/modulesgenericview.cpp
     src/dashboardview.cpp
     src/coremoduleview.cpp
     src/pluginmethodsview.cpp
