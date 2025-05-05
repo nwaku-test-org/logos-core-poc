@@ -24,6 +24,18 @@ Build Core only:
 ./run_core.sh build
 ```
 
+Build Container:
+
+```bash
+docker build -t logos-core .
+```
+
+Run Container:
+
+```bash
+docker run -it logos-core
+```
+
 ## Requirements
 
 - QT 6.4

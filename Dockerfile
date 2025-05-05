@@ -1,10 +1,10 @@
-FROM fedora:43
+FROM ubuntu:24.10
 
 ADD . /app
 
 WORKDIR /app
 
-RUN dnf install -y qt6-qtbase-devel 
-RUN dnf install -y git protobuf-compiler protobuf-devel which patchelf lsb_release cargo awk
+RUN apt-get update &&\
+    apt-get install -y qt6-base-dev protobuf-compiler patchelf  git protobuf-compiler which cargo mawk cmake build-essential lsb-release jq curl
 
 RUN git submodule update --init --recursive
