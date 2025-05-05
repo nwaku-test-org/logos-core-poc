@@ -27,6 +27,11 @@ Build Core only:
 ## Requirements
 
 - QT 6.4
+
+  Ubuntu
+  ```
+  apt-get install qt6-base-dev protobuf-compiler patchelf
+  ```
 - CMake
 
 For some plugins

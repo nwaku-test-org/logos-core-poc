@@ -1,0 +1,6 @@
+Dockerfile
+.dockerignore
+plugins/**/vendor/*
+plugins/**/*.so
+plugins/build/*
+./**/CMakeCache.txt

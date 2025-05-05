@@ -1,7 +1,10 @@
 #!/bin/bash
 
+set -e
+
 # Set base directory
 SCRIPT_DIR="$(dirname "$0")"
+MAKE_J=${1:-2}
 NWAKU_DIR="$SCRIPT_DIR/vendor/nwaku"
 LIBWAKU_PATH="$SCRIPT_DIR/lib/libwaku.so"
 
@@ -21,7 +24,7 @@ if [ ! -f "$LIBWAKU_PATH" ]; then
 
     # Build libwaku
     echo "Running make libwaku..."
-    make libwaku
+    make -j${MAKE_J} libwaku
 
     # Copy libwaku.so to the lib directory
     cp build/libwaku.so "$LIBWAKU_PATH"
