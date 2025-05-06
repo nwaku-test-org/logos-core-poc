@@ -11,7 +11,7 @@ directories=(
   "./logos_app/app/build"
   "./core/build"
   "./modules/build"
-  "./plugins_app/build"
+  "./logos_app/logos_dapps/build"
   "./examples/build"
   "./modules/waku/build"
 )

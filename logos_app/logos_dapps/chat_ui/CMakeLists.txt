@@ -16,11 +16,11 @@ find_package(component-interfaces QUIET)
 # If not found, use the app/interfaces folder
 if(NOT component-interfaces_FOUND)
     # Include the app/interfaces directory
-    include_directories(${CMAKE_CURRENT_SOURCE_DIR}/../../logos_app/app/interfaces)
+    include_directories(${CMAKE_CURRENT_SOURCE_DIR}/../../app/interfaces)
     
     # Create a component-interfaces library
     add_library(component-interfaces INTERFACE)
-    target_include_directories(component-interfaces INTERFACE ${CMAKE_CURRENT_SOURCE_DIR}/../../logos_app/app/interfaces)
+    target_include_directories(component-interfaces INTERFACE ${CMAKE_CURRENT_SOURCE_DIR}/../../app/interfaces)
 endif()
 
 # Check for logos_core library
@@ -36,9 +36,9 @@ add_library(chat_ui SHARED ${SOURCES})
 
 # Include directories
 target_include_directories(chat_ui PRIVATE 
-    ${CMAKE_CURRENT_SOURCE_DIR}/../..
-    ${CMAKE_CURRENT_SOURCE_DIR}/../../core
-    ${CMAKE_CURRENT_SOURCE_DIR}/../../core/host
+    ${CMAKE_CURRENT_SOURCE_DIR}/../../..
+    ${CMAKE_CURRENT_SOURCE_DIR}/../../../core
+    ${CMAKE_CURRENT_SOURCE_DIR}/../../../core/host
 )
 
 # Link libraries

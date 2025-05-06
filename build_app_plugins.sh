@@ -1,8 +1,8 @@
 #!/bin/bash
 
 # build_app_plugins.sh
-# Script to build plugins from plugins_app/ and place them in appropriate directories:
-# - main_ui goes to logos_app/app/build/modules/
+# Script to build plugins from logos_app/logos_dapps/ and place them in appropriate directories:
+# - main_ui goes to logos_app/app/build/plugins/
 # - all other plugins go to logos_app/app/build/packages/
 
 set -e  # Exit on error
@@ -10,14 +10,14 @@ set -e  # Exit on error
 echo "Building app plugins..."
 
 # Make sure the plugins output directory exists
-mkdir -p plugins_app/build/plugins
+mkdir -p logos_app/logos_dapps/build/plugins
 
 # List of plugins to build
 plugins=("counter" "colorchanger" "waku_ui" "main_ui" "chat_ui")
 
 # Build each plugin individually
 for plugin_name in "${plugins[@]}"; do
-    plugin_dir="plugins_app/$plugin_name"
+    plugin_dir="logos_app/logos_dapps/$plugin_name"
 
     if [ ! -d "$plugin_dir" ]; then
         echo "Warning: Plugin directory $plugin_dir does not exist. Skipping."
@@ -38,7 +38,7 @@ for plugin_name in "${plugins[@]}"; do
 done
 
 # Clean up existing plugins if any
-rm -f plugins_app/build/plugins/*.dylib plugins_app/build/plugins/*.so
+rm -f logos_app/logos_dapps/build/plugins/*.dylib logos_app/logos_dapps/build/plugins/*.so
 
 # Create the packages directory if it doesn't exist
 mkdir -p logos_app/app/build/packages
@@ -50,7 +50,7 @@ echo "Copying plugins to appropriate directories..."
 if [[ "$(uname)" == "Darwin" ]]; then
     # macOS: .dylib files
     for plugin_name in "${plugins[@]}"; do
-        plugin_dir="plugins_app/$plugin_name"
+        plugin_dir="logos_app/logos_dapps/$plugin_name"
         if [ -d "$plugin_dir/build" ]; then
             find "$plugin_dir/build" -name "*.dylib" -type f | while read plugin; do
                 # Get the filename
@@ -60,13 +60,13 @@ if [[ "$(uname)" == "Darwin" ]]; then
                 if [ "$plugin_name" == "main_ui" ]; then
                     echo "Copying $filename to logos_app/app/build/plugins/"
                     cp "$plugin" logos_app/app/build/plugins/
-                    # Also copy to plugins_app/build/modules/ for compatibility
-                    cp "$plugin" plugins_app/build/plugins/
+                    # Also copy to logos_app/logos_dapps/build/plugins/ for compatibility
+                    cp "$plugin" logos_app/logos_dapps/build/plugins/
                 else
                     echo "Copying $filename to logos_app/app/build/packages/"
                     cp "$plugin" logos_app/app/build/packages/
-                    # Also copy to plugins_app/build/modules/ for compatibility
-                    cp "$plugin" plugins_app/build/plugins/
+                    # Also copy to logos_app/logos_dapps/build/plugins/ for compatibility
+                    cp "$plugin" logos_app/logos_dapps/build/plugins/
                 fi
             done
         fi
@@ -75,11 +75,11 @@ if [[ "$(uname)" == "Darwin" ]]; then
     # Set correct permissions
     find logos_app/app/build/plugins -name "*.dylib" -type f -exec chmod 755 {} \;
     find logos_app/app/build/packages -name "*.dylib" -type f -exec chmod 755 {} \;
-    find plugins_app/build/plugins -name "*.dylib" -type f -exec chmod 755 {} \;
+    find logos_app/logos_dapps/build/plugins -name "*.dylib" -type f -exec chmod 755 {} \;
 else
     # Linux/other: .so files
     for plugin_name in "${plugins[@]}"; do
-        plugin_dir="plugins_app/$plugin_name"
+        plugin_dir="logos_app/logos_dapps/$plugin_name"
         if [ -d "$plugin_dir/build" ]; then
             find "$plugin_dir/build" -name "*.so" -type f | while read plugin; do
                 # Get the filename
@@ -89,13 +89,13 @@ else
                 if [ "$plugin_name" == "main_ui" ]; then
                     echo "Copying $filename to logos_app/app/build/plugins/"
                     cp "$plugin" logos_app/app/build/plugins/
-                    # Also copy to plugins_app/build/plugins/ for compatibility
-                    cp "$plugin" plugins_app/build/plugins/
+                    # Also copy to logos_app/logos_dapps/build/plugins/ for compatibility
+                    cp "$plugin" logos_app/logos_dapps/build/plugins/
                 else
                     echo "Copying $filename to logos_app/app/build/packages/"
                     cp "$plugin" logos_app/app/build/packages/
-                    # Also copy to plugins_app/build/plugins/ for compatibility
-                    cp "$plugin" plugins_app/build/plugins/
+                    # Also copy to logos_app/logos_dapps/build/plugins/ for compatibility
+                    cp "$plugin" logos_app/logos_dapps/build/plugins/
                 fi
             done
         fi
@@ -104,10 +104,10 @@ else
     # Set correct permissions
     find logos_app/app/build/plugins -name "*.so" -type f -exec chmod 755 {} \;
     find logos_app/app/build/packages -name "*.so" -type f -exec chmod 755 {} \;
-    find plugins_app/build/plugins -name "*.so" -type f -exec chmod 755 {} \;
+    find logos_app/logos_dapps/build/plugins -name "*.so" -type f -exec chmod 755 {} \;
 fi
 
 echo "App plugins built successfully!"
 echo "main_ui plugin is available in: logos_app/app/build/plugins/"
 echo "Other plugins are available in: logos_app/app/build/packages/"
-echo "All plugins are also available in: plugins_app/build/plugins/ for compatibility" 
+echo "All plugins are also available in: logos_app/logos_dapps/build/plugins/ for compatibility" 

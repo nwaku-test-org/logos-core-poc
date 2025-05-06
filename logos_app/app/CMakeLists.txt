@@ -93,5 +93,5 @@ add_custom_command(TARGET LogosApp POST_BUILD
     COMMAND ${CMAKE_COMMAND} -E echo "Creating app plugins directory at ${CMAKE_CURRENT_BINARY_DIR}/bin/plugins"
 )
 
-# Add plugins_app directory
-# add_subdirectory(${CMAKE_SOURCE_DIR}/plugins_app/main_ui)
+# Add logos_dapps directory
+# add_subdirectory(${CMAKE_SOURCE_DIR}/logos_app/logos_dapps/main_ui)

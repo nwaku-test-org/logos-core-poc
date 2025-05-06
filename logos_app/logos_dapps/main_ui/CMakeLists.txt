@@ -16,11 +16,11 @@ find_package(component-interfaces QUIET)
 # If not found, use the app/interfaces folder
 if(NOT component-interfaces_FOUND)
     # Include the app/interfaces directory
-    include_directories(${CMAKE_CURRENT_SOURCE_DIR}/../../logos_app/app/interfaces)
+    include_directories(${CMAKE_CURRENT_SOURCE_DIR}/../../app/interfaces)
     
     # Create a component-interfaces library
     add_library(component-interfaces INTERFACE)
-    target_include_directories(component-interfaces INTERFACE ${CMAKE_CURRENT_SOURCE_DIR}/../../logos_app/app/interfaces)
+    target_include_directories(component-interfaces INTERFACE ${CMAKE_CURRENT_SOURCE_DIR}/../../app/interfaces)
 endif()
 
 set(SOURCES
@@ -43,7 +43,8 @@ add_library(main_ui SHARED ${SOURCES})
 # Add include directories before target_link_libraries
 target_include_directories(main_ui PRIVATE 
     ${CMAKE_CURRENT_SOURCE_DIR}/src
-    ${CMAKE_CURRENT_SOURCE_DIR}/../..
+    ${CMAKE_CURRENT_SOURCE_DIR}/../../..
+    ${CMAKE_CURRENT_SOURCE_DIR}/../../../core
 )
 
 # Add Qt definitions
