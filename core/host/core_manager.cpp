@@ -201,7 +201,7 @@ bool CoreManagerPlugin::installPlugin(const QString& pluginPath) {
     // solution is to ensure the app/ interacts with logos core through the core plugin as much as possible
 
     // TODO: can be removed once setPluginDirectory works again
-    m_pluginsDirectory = QDir::cleanPath(QCoreApplication::applicationDirPath() + "/bin/plugins");
+    m_pluginsDirectory = QDir::cleanPath(QCoreApplication::applicationDirPath() + "/bin/modules");
 
     // print plugins directory
     qDebug() << "Plugins directory:" << m_pluginsDirectory;

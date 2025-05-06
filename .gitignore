@@ -1,4 +1,4 @@
 **/build/**
 .DS_Store
-plugins/waku/lib/libwaku.so
+modules/waku/lib/libwaku.so
 .vscode/**
