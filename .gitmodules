@@ -1,4 +1,4 @@
-[submodule "plugins/waku/vendor/nwaku"]
-	path = plugins/waku/vendor/nwaku
+[submodule "modules/waku/vendor/nwaku"]
+	path = modules/waku/vendor/nwaku
 	url = https://github.com/iurimatias/nwaku.git
 	branch = template_fix
