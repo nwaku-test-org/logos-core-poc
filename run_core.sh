@@ -42,13 +42,13 @@ if [ "$1" = "build" ]; then
     exit 0
 fi
 
-# Note: Plugin building has been moved to build_core_plugins.sh
-# Make sure to run build_core_plugins.sh before this script if you need updated plugins
+# Note: Module building has been moved to build_core_modules.sh
+# Make sure to run build_core_modules.sh before this script if you need updated modules
 
 # Check if the "all" argument was provided
 if [ "$1" = "all" ]; then
-    echo "Building plugins first..."
-    ./build_core_plugins.sh
+    echo "Building modules first..."
+    ./build_core_modules.sh
 fi
 
 # Run the application

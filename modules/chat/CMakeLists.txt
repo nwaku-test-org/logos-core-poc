@@ -84,7 +84,7 @@ endif()
 
 # Set common properties for both platforms
 set_target_properties(chat PROPERTIES
-    LIBRARY_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/plugins"
+    LIBRARY_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/modules"
     BUILD_WITH_INSTALL_RPATH TRUE
     SKIP_BUILD_RPATH FALSE)
 

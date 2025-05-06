@@ -27,13 +27,13 @@ make
 # Create the plugins directory if it doesn't exist
 echo "Setting up plugins directory..."
 mkdir -p plugins
-mkdir -p bin/plugins
+mkdir -p bin/modules
 
 # Check if the "all" argument was provided
 if [ "$1" = "all" ]; then
     cd ../..
     echo "Building plugins first..."
-    ./build_core_plugins.sh
+    ./build_core_modules.sh
     ./build_app_plugins.sh
     cd app/build
 fi

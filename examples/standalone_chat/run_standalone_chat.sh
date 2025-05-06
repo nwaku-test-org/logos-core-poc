@@ -31,23 +31,23 @@ else
     LIB_EXT="so"
 fi
 
-# Manually copy specific plugins as a fallback
-echo "Copying specific plugins..."
-PLUGINS=("chat_plugin" "libwaku" "waku_plugin")
-CORE_PLUGINS_DIR="../../core/build/plugins"
+# Manually copy specific modules as a fallback
+echo "Copying specific modules..."
+MODULES=("chat_plugin" "libwaku" "waku_plugin")
+CORE_MODULES_DIR="../../core/build/modules"
 
 for PLUGIN in "${PLUGINS[@]}"; do
     # Try with the platform-specific extension first
     if [ -f "$CORE_PLUGINS_DIR/$PLUGIN.$LIB_EXT" ]; then
         echo "Copying $PLUGIN.$LIB_EXT"
-        cp "$CORE_PLUGINS_DIR/$PLUGIN.$LIB_EXT" "bin/plugins/"
+        cp "$CORE_MODULES_DIR/$PLUGIN.$LIB_EXT" "bin/modules/"
     # Try with alternative extension
-    elif [ "$LIB_EXT" = "dylib" ] && [ -f "$CORE_PLUGINS_DIR/$PLUGIN.so" ]; then
+    elif [ "$LIB_EXT" = "dylib" ] && [ -f "$CORE_MODULES_DIR/$PLUGIN.so" ]; then
         echo "Copying $PLUGIN.so"
-        cp "$CORE_PLUGINS_DIR/$PLUGIN.so" "bin/plugins/"
-    elif [ "$LIB_EXT" = "so" ] && [ -f "$CORE_PLUGINS_DIR/$PLUGIN.dylib" ]; then
+        cp "$CORE_MODULES_DIR/$PLUGIN.so" "bin/modules/"
+    elif [ "$LIB_EXT" = "so" ] && [ -f "$CORE_MODULES_DIR/$PLUGIN.dylib" ]; then
         echo "Copying $PLUGIN.dylib"
-        cp "$CORE_PLUGINS_DIR/$PLUGIN.dylib" "bin/plugins/"
+        cp "$CORE_MODULES_DIR/$PLUGIN.dylib" "bin/modules/"
     else
         echo "Plugin $PLUGIN not found in $CORE_PLUGINS_DIR"
     fi

@@ -18,7 +18,7 @@
 #include "protocol/protocol.h"
 #include "message.pb.h"
 #include "../../core/plugin_registry.h"
-#include "../../plugins/waku/waku_interface.h"
+#include "../../modules/waku/waku_interface.h"
 
 // Constants
 extern const std::string TOY_CHAT_CONTENT_TOPIC;

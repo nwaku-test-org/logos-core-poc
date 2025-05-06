@@ -9,7 +9,7 @@
 #include <QDebug>
 #include <QMetaProperty>
 
-// This is a header-only implementation that can be included by both core and plugins
+// This is a header-only implementation that can be included by both core and modules
 // without creating circular dependencies
 
 // ================================

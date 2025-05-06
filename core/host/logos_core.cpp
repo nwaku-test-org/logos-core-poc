@@ -284,7 +284,7 @@ void logos_core_start()
     
     // First initialize the core manager
     if (!initializeCoreManager()) {
-        qWarning() << "Failed to initialize core manager, continuing with other plugins...";
+        qWarning() << "Failed to initialize core manager, continuing with other modules...";
     }
     
     // Define the plugins directory path
@@ -294,17 +294,17 @@ void logos_core_start()
         pluginsDir = g_plugins_dir;
     } else {
         // Use the default plugins directory
-        pluginsDir = QDir::cleanPath(QCoreApplication::applicationDirPath() + "/../plugins");
+        pluginsDir = QDir::cleanPath(QCoreApplication::applicationDirPath() + "/../modules");
     }
-    qDebug() << "Looking for plugins in:" << pluginsDir;
+    qDebug() << "Looking for modules in:" << pluginsDir;
     
     // Find and load all plugins in the directory
     QStringList pluginPaths = findPlugins(pluginsDir);
     
     if (pluginPaths.isEmpty()) {
-        qWarning() << "No plugins found in:" << pluginsDir;
+        qWarning() << "No modules found in:" << pluginsDir;
     } else {
-        qDebug() << "Found" << pluginPaths.size() << "plugins";
+        qDebug() << "Found" << pluginPaths.size() << "modules";
         
         // Load and process each plugin
         for (const QString &pluginPath : pluginPaths) {

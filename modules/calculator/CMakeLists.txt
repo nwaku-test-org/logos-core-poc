@@ -25,8 +25,8 @@ target_include_directories(calculator_plugin PRIVATE
 
 # Set common properties for both platforms
 set_target_properties(calculator_plugin PROPERTIES
-    LIBRARY_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/plugins"
-    RUNTIME_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/plugins"  # For Windows .dll
+    LIBRARY_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/modules"
+    RUNTIME_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/modules"  # For Windows .dll
     BUILD_WITH_INSTALL_RPATH TRUE
     SKIP_BUILD_RPATH FALSE)
 

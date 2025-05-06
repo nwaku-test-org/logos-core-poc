@@ -17,7 +17,7 @@ int main(int argc, char *argv[])
     core.initialize(argc, argv);
 
     // Set the plugins directory
-    QString pluginsDir = QDir::cleanPath(QCoreApplication::applicationDirPath() + "/plugins");
+    QString pluginsDir = QDir::cleanPath(QCoreApplication::applicationDirPath() + "/modules");
     std::cout << "Setting plugins directory to: " << pluginsDir.toStdString() << std::endl;
     core.setPluginsDirectory(pluginsDir);
 

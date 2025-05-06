@@ -4,7 +4,7 @@
 #include <functional>
 #include "chat_interface.h"
 #include "src/chat_api.h"
-#include "../../plugins/waku/waku_interface.h"
+#include "../../modules/waku/waku_interface.h"
 
 class ChatPlugin : public QObject, public ChatInterface {
     Q_OBJECT

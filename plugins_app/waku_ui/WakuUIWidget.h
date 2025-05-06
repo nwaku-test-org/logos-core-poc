@@ -1,7 +1,7 @@
 #pragma once
 
 #include <QWidget>
-#include "../../plugins/waku/waku_interface.h"
+#include "../../modules/waku/waku_interface.h"
 
 class QPushButton;
 class QLabel;

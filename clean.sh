@@ -10,10 +10,10 @@ directories=(
   "./build"
   "./app/build"
   "./core/build"
-  "./plugins/build"
+  "./modules/build"
   "./plugins_app/build"
   "./examples/build"
-  "./plugins/waku/build"
+  "./modules/waku/build"
 )
 
 # Remove each directory if it exists

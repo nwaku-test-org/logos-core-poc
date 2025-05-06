@@ -69,11 +69,11 @@ target_link_libraries(standalone_chat PRIVATE ${LOGOS_CORE_LIB})
 
 # Copy plugins to the output directory
 add_custom_command(TARGET standalone_chat POST_BUILD
-    COMMAND ${CMAKE_COMMAND} -E make_directory ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/plugins
-    COMMENT "Creating plugins directory"
+    COMMAND ${CMAKE_COMMAND} -E make_directory ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/modules
+    COMMENT "Creating modules directory"
 )
 
-# Copy only specific plugins
+# Copy only specific modules
 foreach(PLUGIN_NAME "chat_plugin" "libwaku" "waku_plugin")
     if(APPLE)
         set(PLUGIN_EXT "dylib")
@@ -81,15 +81,15 @@ foreach(PLUGIN_NAME "chat_plugin" "libwaku" "waku_plugin")
         set(PLUGIN_EXT "so")
     endif()
     
-    set(PLUGIN_PATH "${CMAKE_CURRENT_SOURCE_DIR}/../../core/build/plugins/${PLUGIN_NAME}.${PLUGIN_EXT}")
+    set(PLUGIN_PATH "${CMAKE_CURRENT_SOURCE_DIR}/../../core/build/modules/${PLUGIN_NAME}.${PLUGIN_EXT}")
     
     # Check if plugin exists with primary extension
     if(NOT EXISTS ${PLUGIN_PATH})
         # Try alternative extension
         if(APPLE)
-            set(PLUGIN_PATH "${CMAKE_CURRENT_SOURCE_DIR}/../../core/build/plugins/${PLUGIN_NAME}.so")
+            set(PLUGIN_PATH "${CMAKE_CURRENT_SOURCE_DIR}/../../core/build/modules/${PLUGIN_NAME}.so")
         else()
-            set(PLUGIN_PATH "${CMAKE_CURRENT_SOURCE_DIR}/../../core/build/plugins/${PLUGIN_NAME}.dylib")
+            set(PLUGIN_PATH "${CMAKE_CURRENT_SOURCE_DIR}/../../core/build/modules/${PLUGIN_NAME}.dylib")
         endif()
     endif()
     
@@ -98,11 +98,11 @@ foreach(PLUGIN_NAME "chat_plugin" "libwaku" "waku_plugin")
         add_custom_command(TARGET standalone_chat POST_BUILD
             COMMAND ${CMAKE_COMMAND} -E copy
                 ${PLUGIN_PATH}
-                ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/plugins/
-            COMMENT "Copying plugin: ${PLUGIN_NAME}"
+                ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/modules/
+            COMMENT "Copying module: ${PLUGIN_NAME}"
         )
     else()
-        message(STATUS "Plugin not found: ${PLUGIN_NAME}")
+        message(STATUS "Module not found: ${PLUGIN_NAME}")
     endif()
 endforeach()
 

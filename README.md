@@ -12,7 +12,7 @@ Build & run all:
 ./run_app.sh all
 ```
 
-For core & plugins:
+For core & modules:
 
 ```bash
 ./run_core.sh all

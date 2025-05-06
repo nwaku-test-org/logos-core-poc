@@ -8,7 +8,7 @@
 #include <QLineEdit>
 #include <QLabel>
 #include <string>
-#include "../../plugins/chat/chat_interface.h"
+#include "../../modules/chat/chat_interface.h"
 
 class ChatWidget : public QWidget {
     Q_OBJECT

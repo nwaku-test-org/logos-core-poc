@@ -4,7 +4,7 @@
 #include <QtPlugin>
 #include <QString>
 
-// Define the common base interface for all plugins
+// Define the common base interface for all modules
 class PluginInterface
 {
 public:

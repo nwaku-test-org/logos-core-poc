@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 3.14)
-project(LogosPlugins)
+project(LogosModules)
 
 # Find Qt packages
 find_package(Qt6 COMPONENTS Core REQUIRED)

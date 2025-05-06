@@ -58,17 +58,17 @@ mkdir -p bin/plugins
 # Check if the core build plugins directory exists
 if [ -d "$BASE_DIR/core/build/plugins" ]; then
     # Copy plugins from the core build directory
-    cp -v "$BASE_DIR/core/build/plugins"/* bin/plugins/ 2>/dev/null || true
-elif [ -d "$BASE_DIR/plugins/build/plugins" ]; then
+    cp -v "$BASE_DIR/core/build/plugins"/* bin/modules/ 2>/dev/null || true
+elif [ -d "$BASE_DIR/modules/build/modules" ]; then
     # Copy plugins from the plugins build directory
-    cp -v "$BASE_DIR/plugins/build/plugins"/* bin/plugins/ 2>/dev/null || true
+    cp -v "$BASE_DIR/modules/build/modules"/* bin/modules/ 2>/dev/null || true
 else
     echo "Warning: Could not find plugins directory. The application may not work correctly."
 fi
 
 # List the copied plugins
 echo "Plugins in bin/plugins directory:"
-ls -la bin/plugins/
+ls -la bin/modules/
 
 # Run the custom application
 echo "Running custom application..."

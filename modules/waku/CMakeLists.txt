@@ -56,7 +56,7 @@ target_include_directories(waku PRIVATE
 
 # Set common properties for both platforms
 set_target_properties(waku PROPERTIES
-    LIBRARY_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/plugins"
+    LIBRARY_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/modules"
     BUILD_WITH_INSTALL_RPATH TRUE
     SKIP_BUILD_RPATH FALSE)
 
@@ -67,19 +67,19 @@ if(APPLE)
         INSTALL_NAME_DIR "@rpath"
         BUILD_WITH_INSTALL_NAME_DIR TRUE)
     
-    # First, copy libwaku.so to the plugins directory
+    # First, copy libwaku.so to the modules directory
     add_custom_command(TARGET waku PRE_LINK
         COMMAND ${CMAKE_COMMAND} -E copy
         ${LIBWAKU_PATH}
-        ${CMAKE_BINARY_DIR}/plugins/libwaku.so
-        COMMENT "Copying libwaku.so to plugins directory"
+        ${CMAKE_BINARY_DIR}/modules/libwaku.so
+        COMMENT "Copying libwaku.so to modules directory"
     )
 
     # Then update the library paths
     add_custom_command(TARGET waku POST_BUILD
         COMMAND install_name_tool -id "@rpath/waku_plugin.dylib" $<TARGET_FILE:waku>
         COMMAND install_name_tool -change "${LIBWAKU_PATH}" "@rpath/libwaku.so" $<TARGET_FILE:waku>
-        COMMAND install_name_tool -id "@rpath/libwaku.so" "${CMAKE_BINARY_DIR}/plugins/libwaku.so"
+        COMMAND install_name_tool -id "@rpath/libwaku.so" "${CMAKE_BINARY_DIR}/modules/libwaku.so"
         COMMENT "Updating library paths for macOS"
     )
 else()
@@ -88,12 +88,12 @@ else()
     # this NEEDS to use patch-elf to do equivalent to install_name_tool
     # it will work for now, but will have issues with relative paths
 
-    # First, copy libwaku.so to the plugins directory
+    # First, copy libwaku.so to the modules directory
     add_custom_command(TARGET waku PRE_LINK
         COMMAND ${CMAKE_COMMAND} -E copy
         ${LIBWAKU_PATH}
-        ${CMAKE_BINARY_DIR}/plugins/libwaku.so
-        COMMENT "Copying libwaku.so to plugins directory"
+        ${CMAKE_BINARY_DIR}/modules/libwaku.so
+        COMMENT "Copying libwaku.so to modules directory"
     )
 
     # Linux specific settings
