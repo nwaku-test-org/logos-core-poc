@@ -9,7 +9,7 @@
 #include <QDebug>
 #include <QMetaObject>
 #include "core_manager.h"
-#include "../core/plugin_registry.h"
+#include "../../core/plugin_registry.h"
 
 int main(int argc, char *argv[])
 {

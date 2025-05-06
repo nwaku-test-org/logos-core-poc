@@ -18,7 +18,7 @@ endif()
 include_directories(
     ${CMAKE_CURRENT_SOURCE_DIR}/../../core
     ${CMAKE_CURRENT_SOURCE_DIR}/../../core/host
-    ${CMAKE_CURRENT_SOURCE_DIR}/../../app/interfaces
+    ${CMAKE_CURRENT_SOURCE_DIR}/../../logos_app/app/interfaces
 )
 
 # Set output directory for the executable

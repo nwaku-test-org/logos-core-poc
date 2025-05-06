@@ -8,7 +8,7 @@ echo "Cleaning all build directories..."
 # List of known build directories to remove
 directories=(
   "./build"
-  "./app/build"
+  "./logos_app/app/build"
   "./core/build"
   "./modules/build"
   "./plugins_app/build"

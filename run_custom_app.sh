@@ -75,4 +75,13 @@ echo "Running custom application..."
 ./bin/custom_app
 
 # Return to the base directory
-cd "$BASE_DIR" 
+cd "$BASE_DIR"
+
+# Copy plugin libraries to build modules directory
+echo "Copying plugin libraries to build modules directory..."
+
+# Create modules directory in core build if it doesn't exist
+mkdir -p core/build/modules
+mkdir -p logos_app/app/build/bin/modules
+# Create packages directory for the package manager
+mkdir -p logos_app/app/build/packages 

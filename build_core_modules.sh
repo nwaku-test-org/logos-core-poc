@@ -59,18 +59,18 @@ echo "Copying plugin libraries to build modules directory..."
 
 # Create modules directory in core build if it doesn't exist
 mkdir -p core/build/modules
-mkdir -p app/build/bin/modules
+mkdir -p logos_app/app/build/bin/modules
 # Create packages directory for the package manager
-mkdir -p app/build/packages
+mkdir -p logos_app/app/build/packages
 
 # Find all plugin libraries and copy them to the build modules directory
 echo "Looking for plugin libraries in modules/build/modules directory..."
 find modules/build/modules -type f \( -name "*.dylib" -o -name "*.so" -o -name "*.dll" \) | while read plugin; do
     echo "Copying plugin: $plugin"
     cp "$plugin" "core/build/modules/"
-    # cp "$plugin" "app/build/bin/modules/"
+    # cp "$plugin" "logos_app/app/build/bin/modules/"
     # Also copy to packages directory for the package manager
-    cp "$plugin" "app/build/packages/"
+    cp "$plugin" "logos_app/app/build/packages/"
 done
 
 echo "Modules built successfully." 

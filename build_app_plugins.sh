@@ -2,8 +2,8 @@
 
 # build_app_plugins.sh
 # Script to build plugins from plugins_app/ and place them in appropriate directories:
-# - main_ui goes to app/build/plugins/
-# - all other plugins go to app/build/packages/
+# - main_ui goes to logos_app/app/build/modules/
+# - all other plugins go to logos_app/app/build/packages/
 
 set -e  # Exit on error
 
@@ -41,7 +41,7 @@ done
 rm -f plugins_app/build/plugins/*.dylib plugins_app/build/plugins/*.so
 
 # Create the packages directory if it doesn't exist
-mkdir -p app/build/packages
+mkdir -p logos_app/app/build/packages
 
 # Copy the built plugins to the central plugins directory
 echo "Copying plugins to appropriate directories..."
@@ -56,16 +56,16 @@ if [[ "$(uname)" == "Darwin" ]]; then
                 # Get the filename
                 filename=$(basename "$plugin")
 
-                # Copy main_ui to plugins directory, others to packages directory
+                # Copy main_ui to modules directory, others to packages directory
                 if [ "$plugin_name" == "main_ui" ]; then
-                    echo "Copying $filename to app/build/plugins/"
-                    cp "$plugin" app/build/plugins/
-                    # Also copy to plugins_app/build/plugins/ for compatibility
+                    echo "Copying $filename to logos_app/app/build/plugins/"
+                    cp "$plugin" logos_app/app/build/plugins/
+                    # Also copy to plugins_app/build/modules/ for compatibility
                     cp "$plugin" plugins_app/build/plugins/
                 else
-                    echo "Copying $filename to app/build/packages/"
-                    cp "$plugin" app/build/packages/
-                    # Also copy to plugins_app/build/plugins/ for compatibility
+                    echo "Copying $filename to logos_app/app/build/packages/"
+                    cp "$plugin" logos_app/app/build/packages/
+                    # Also copy to plugins_app/build/modules/ for compatibility
                     cp "$plugin" plugins_app/build/plugins/
                 fi
             done
@@ -73,8 +73,8 @@ if [[ "$(uname)" == "Darwin" ]]; then
     done
 
     # Set correct permissions
-    find app/build/plugins -name "*.dylib" -type f -exec chmod 755 {} \;
-    find app/build/packages -name "*.dylib" -type f -exec chmod 755 {} \;
+    find logos_app/app/build/plugins -name "*.dylib" -type f -exec chmod 755 {} \;
+    find logos_app/app/build/packages -name "*.dylib" -type f -exec chmod 755 {} \;
     find plugins_app/build/plugins -name "*.dylib" -type f -exec chmod 755 {} \;
 else
     # Linux/other: .so files
@@ -85,15 +85,15 @@ else
                 # Get the filename
                 filename=$(basename "$plugin")
 
-                # Copy main_ui to plugins directory, others to packages directory
+                # Copy main_ui to modules directory, others to packages directory
                 if [ "$plugin_name" == "main_ui" ]; then
-                    echo "Copying $filename to app/build/plugins/"
-                    cp "$plugin" app/build/plugins/
+                    echo "Copying $filename to logos_app/app/build/plugins/"
+                    cp "$plugin" logos_app/app/build/plugins/
                     # Also copy to plugins_app/build/plugins/ for compatibility
                     cp "$plugin" plugins_app/build/plugins/
                 else
-                    echo "Copying $filename to app/build/packages/"
-                    cp "$plugin" app/build/packages/
+                    echo "Copying $filename to logos_app/app/build/packages/"
+                    cp "$plugin" logos_app/app/build/packages/
                     # Also copy to plugins_app/build/plugins/ for compatibility
                     cp "$plugin" plugins_app/build/plugins/
                 fi
@@ -102,12 +102,12 @@ else
     done
 
     # Set correct permissions
-    find app/build/plugins -name "*.so" -type f -exec chmod 755 {} \;
-    find app/build/packages -name "*.so" -type f -exec chmod 755 {} \;
+    find logos_app/app/build/plugins -name "*.so" -type f -exec chmod 755 {} \;
+    find logos_app/app/build/packages -name "*.so" -type f -exec chmod 755 {} \;
     find plugins_app/build/plugins -name "*.so" -type f -exec chmod 755 {} \;
 fi
 
 echo "App plugins built successfully!"
-echo "main_ui plugin is available in: app/build/plugins/"
-echo "Other plugins are available in: app/build/packages/"
+echo "main_ui plugin is available in: logos_app/app/build/plugins/"
+echo "Other plugins are available in: logos_app/app/build/packages/"
 echo "All plugins are also available in: plugins_app/build/plugins/ for compatibility" 
